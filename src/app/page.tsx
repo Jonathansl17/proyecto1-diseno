@@ -11,6 +11,8 @@ interface RideOption {
   name: string;
   desc: string;
   icon: string;
+  color: string;
+  bgGradient: string;
 }
 
 export default function Home() {
@@ -21,22 +23,33 @@ export default function Home() {
   const [eta, setEta] = useState("—");
   const [fare, setFare] = useState("—");
   const [looking, setLooking] = useState(false);
+  const [mapAnimation, setMapAnimation] = useState(false);
+  const [showDriverCard, setShowDriverCard] = useState(true);
 
   useEffect(() => {
     setIsVisible(true);
+    // Animate map periodically
+    const interval = setInterval(() => {
+      setMapAnimation(true);
+      setTimeout(() => setMapAnimation(false), 2000);
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Fake fare/eta calculator
+  // Enhanced fare/eta calculator with more dynamic pricing
   useEffect(() => {
     if (!pickup || !dropoff) {
       setEta("—");
       setFare("—");
       return;
     }
-    const base = rideType === "standard" ? 1200 : rideType === "premium" ? 2200 : 900; // CRC/min (fake)
-    const minutes = 7 + Math.floor((pickup.length + dropoff.length) % 9);
+    const multipliers = { standard: 1.0, premium: 1.8, moto: 0.7, electric: 1.2 };
+    const base = 1400;
+    const distance = Math.floor((pickup.length + dropoff.length) % 12) + 3;
+    const minutes = Math.floor(distance * 1.2) + Math.floor(Math.random() * 3);
+    
     setEta(`${minutes} min`);
-    setFare(`₡${(base * (minutes * 1.2)).toLocaleString("es-CR")}`);
+    setFare(`₡${(base * distance * multipliers[rideType as keyof typeof multipliers]).toLocaleString("es-CR")}`);
   }, [pickup, dropoff, rideType]);
 
   function handleGeo() {
@@ -44,7 +57,7 @@ export default function Home() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-        setPickup(`Mi ubicación (${latitude.toFixed(3)}, ${longitude.toFixed(3)})`);
+        setPickup(`Mi ubicación actual`);
       },
       () => alert("No se pudo obtener tu ubicación")
     );
@@ -56,113 +69,160 @@ export default function Home() {
       return;
     }
     setLooking(true);
-    setTimeout(() => setLooking(false), 2400);
+    setTimeout(() => {
+      setLooking(false);
+      setShowDriverCard(true);
+    }, 3000);
   }
 
   const rideOptions = useMemo(
     () => [
-      { id: "standard", name: "Económico", desc: "Hasta 4 pax", icon: "🚗" },
-      { id: "premium", name: "Confort", desc: "Autos premium", icon: "🚘" },
-      { id: "moto", name: "Moto", desc: "1 pax rápido", icon: "🏍️" },
+      { 
+        id: "standard", 
+        name: "RideShare", 
+        desc: "Económico • 4 pax", 
+        icon: "🚗", 
+        color: "text-blue-600",
+        bgGradient: "from-blue-500 to-cyan-500"
+      },
+      { 
+        id: "premium", 
+        name: "Premium", 
+        desc: "Confort • AC", 
+        icon: "🚘", 
+        color: "text-purple-600",
+        bgGradient: "from-purple-500 to-pink-500"
+      },
+      { 
+        id: "moto", 
+        name: "MotoExpress", 
+        desc: "1 pax • Rápido", 
+        icon: "🏍️", 
+        color: "text-orange-600",
+        bgGradient: "from-orange-500 to-red-500"
+      },
+      { 
+        id: "electric", 
+        name: "EcoRide", 
+        desc: "Eléctrico • Verde", 
+        icon: "⚡", 
+        color: "text-green-600",
+        bgGradient: "from-green-500 to-emerald-500"
+      },
     ],
     []
   );
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-gradient-to-b from-sky-50 via-white to-sky-50 text-gray-900">
-      {/* Top bar */}
+    <div className="relative flex min-h-screen flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl animate-bounce"></div>
+      </div>
+
+      {/* Glassmorphic top bar */}
       <header
         className={clsx(
-          "sticky top-0 z-30 border-b border-sky-100 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60",
-          "transition-all duration-700",
+          "sticky top-0 z-30 border-b border-white/10 bg-black/20 backdrop-blur-xl",
+          "transition-all duration-1000",
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
         )}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
+          <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="rounded-2xl border border-sky-200 bg-gradient-to-br from-white to-sky-50 p-2 shadow-sm">
-                <img src="/civicfix-logo.webp" alt="RideNow CR" width={36} height={36} className="rounded-xl" />
+              <div className="rounded-2xl border border-white/20 bg-gradient-to-br from-white/20 to-transparent p-3 shadow-2xl backdrop-blur">
+                <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold">R</div>
               </div>
-              <span className="absolute -right-1 -top-1 h-3 w-3 animate-ping rounded-full bg-emerald-500"></span>
+              <div className="absolute -right-1 -top-1 h-3 w-3 bg-emerald-400 rounded-full animate-ping"></div>
+              <div className="absolute -right-1 -top-1 h-3 w-3 bg-emerald-500 rounded-full"></div>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-widest text-sky-600">Disponible en CR</p>
-              <h1 className="text-lg font-bold leading-5 text-sky-700">RideNow</h1>
+              <p className="text-xs uppercase tracking-wider text-cyan-400 font-semibold">Costa Rica</p>
+              <h1 className="text-xl font-black bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">RideNow</h1>
             </div>
           </div>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="hidden sm:inline text-sky-700">Soporte 24/7</span>
-            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-emerald-700 ring-1 ring-emerald-500/20">En línea</span>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 text-sm">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+              <span className="text-emerald-300">En línea</span>
+            </div>
+            <button className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur hover:bg-white/20 transition-all">
+              24/7 Soporte
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Decorative blobs */}
-      <div className="pointer-events-none absolute inset-0 -z-10 opacity-40">
-        <div className="absolute -left-10 top-24 h-40 w-40 rounded-full bg-gradient-to-br from-sky-200 to-white blur-2xl" />
-        <div className="absolute right-10 top-64 h-28 w-28 rotate-12 rounded-2xl bg-gradient-to-br from-sky-300 to-sky-100 blur-xl" />
-      </div>
-
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6">
-        {/* Search card */}
+      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-4 py-8">
+        {/* Main ride request area */}
         <section
           className={clsx(
-            "grid grid-cols-1 gap-4 md:grid-cols-3",
-            "transition-all duration-700 delay-100",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            "grid grid-cols-1 lg:grid-cols-2 gap-8",
+            "transition-all duration-1000 delay-200",
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           )}
         >
-          {/* Inputs */}
-          <div className="col-span-2 space-y-4">
-            <div className="rounded-3xl border border-sky-200 bg-white p-5 shadow-xl">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-sky-700">Tu viaje</h2>
+          {/* Left side - Controls */}
+          <div className="space-y-6">
+            {/* Trip planner card */}
+            <div className="rounded-3xl border border-white/20 bg-white/10 backdrop-blur-xl p-6 shadow-2xl">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">Planifica tu viaje</h2>
                 <button
                   onClick={() => {
                     const p = pickup;
                     setPickup(dropoff);
                     setDropoff(p);
                   }}
-                  className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700 hover:bg-sky-100"
-                  title="Intercambiar"
+                  className="rounded-xl border border-cyan-500/50 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-300 hover:bg-cyan-500/30 transition-all"
                 >
-                  ⇅ Intercambiar
+                  ⇄ Swap
                 </button>
               </div>
 
-              <div className="flex flex-col gap-3">
-                <label className="flex items-center gap-3 rounded-2xl border border-sky-100 bg-sky-50/60 px-4 py-3 focus-within:ring-2 focus-within:ring-sky-300">
-                  <span className="text-lg">📍</span>
+              <div className="space-y-4">
+                <div className="group relative">
+                  <div className="absolute left-4 top-4 z-10">
+                    <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+                  </div>
                   <input
                     value={pickup}
                     onChange={(e) => setPickup(e.target.value)}
-                    placeholder="Punto de partida"
-                    className="w-full bg-transparent text-sm outline-none placeholder:text-sky-400"
+                    placeholder="¿Desde dónde partes?"
+                    className="w-full rounded-2xl border border-white/20 bg-white/5 px-12 py-4 text-white placeholder:text-white/60 focus:border-cyan-400 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 transition-all backdrop-blur"
                   />
-                  <button onClick={handleGeo} className="rounded-lg bg-white px-3 py-1 text-xs text-sky-700 ring-1 ring-sky-200 hover:bg-sky-50">
-                    Usar mi ubicación
+                  <button 
+                    onClick={handleGeo} 
+                    className="absolute right-3 top-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 px-3 py-2 text-xs font-medium text-white hover:from-cyan-600 hover:to-blue-600 transition-all"
+                  >
+                    📍 GPS
                   </button>
-                </label>
+                </div>
 
-                <label className="flex items-center gap-3 rounded-2xl border border-sky-100 bg-sky-50/60 px-4 py-3 focus-within:ring-2 focus-within:ring-sky-300">
-                  <span className="text-lg">🎯</span>
+                <div className="group relative">
+                  <div className="absolute left-4 top-4 z-10">
+                    <div className="w-3 h-3 bg-rose-400 rounded-full"></div>
+                  </div>
                   <input
                     value={dropoff}
                     onChange={(e) => setDropoff(e.target.value)}
-                    placeholder="Destino (ej. TEC San Carlos)"
-                    className="w-full bg-transparent text-sm outline-none placeholder:text-sky-400"
+                    placeholder="¿A dónde vas?"
+                    className="w-full rounded-2xl border border-white/20 bg-white/5 px-12 py-4 text-white placeholder:text-white/60 focus:border-rose-400 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-rose-400/50 transition-all backdrop-blur"
                   />
-                </label>
+                </div>
               </div>
 
-              {/* Quick chips */}
-              <div className="mt-4 flex flex-wrap gap-2 text-xs">
-                {["Casa", "Trabajo", "Super", "Universidad"].map((tag) => (
+              {/* Quick destination chips */}
+              <div className="mt-6 flex flex-wrap gap-2">
+                {["🏠 Casa", "💼 Trabajo", "🛒 Centro", "🎓 Universidad", "✈️ Aeropuerto"].map((tag, i) => (
                   <button
                     key={tag}
-                    onClick={() => setDropoff(tag)}
-                    className="rounded-full border border-sky-200 bg-white px-3 py-1 text-sky-700 hover:bg-sky-50"
+                    onClick={() => setDropoff(tag.split(" ")[1])}
+                    className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-medium text-white/80 hover:bg-white/20 hover:text-white transition-all backdrop-blur"
+                    style={{ animationDelay: `${i * 100}ms` }}
                   >
                     {tag}
                   </button>
@@ -170,165 +230,317 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Ride type selector */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {rideOptions.map((opt) => (
+            {/* Enhanced ride options */}
+            <div className="grid grid-cols-2 gap-4">
+              {rideOptions.map((opt, i) => (
                 <button
                   key={opt.id}
                   onClick={() => setRideType(opt.id)}
                   className={clsx(
-                    "group rounded-3xl border p-5 text-left shadow transition-all",
+                    "group relative overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 hover:scale-105",
                     rideType === opt.id
-                      ? "border-sky-500 bg-gradient-to-br from-white to-sky-50 shadow-lg"
-                      : "border-sky-100 bg-white hover:shadow-md"
+                      ? "border-white/40 bg-white/20 shadow-2xl ring-2 ring-white/30"
+                      : "border-white/20 bg-white/5 hover:bg-white/10"
                   )}
+                  style={{ animationDelay: `${i * 100}ms` }}
                 >
-                  <div className="mb-3 flex items-center gap-3">
-                    <span className="text-2xl">{opt.icon}</span>
-                    <div>
-                      <p className="text-base font-semibold text-sky-800">{opt.name}</p>
-                      <p className="text-xs text-sky-600">{opt.desc}</p>
+                  {rideType === opt.id && (
+                    <div className={`absolute inset-0 bg-gradient-to-br ${opt.bgGradient} opacity-20`}></div>
+                  )}
+                  
+                  <div className="relative z-10">
+                    <div className="mb-3 flex items-center gap-3">
+                      <div className="text-2xl">{opt.icon}</div>
+                      <div>
+                        <p className={`font-bold ${rideType === opt.id ? 'text-white' : 'text-white/90'}`}>{opt.name}</p>
+                        <p className="text-xs text-white/60">{opt.desc}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-sky-600">ETA: {eta}</span>
-                    <span className="rounded-xl bg-sky-50 px-2 py-1 font-semibold text-sky-700 ring-1 ring-sky-200">{fare}</span>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white/70">{eta}</span>
+                      <span className={`rounded-lg bg-gradient-to-r ${opt.bgGradient} px-3 py-1 font-bold text-white shadow-lg`}>
+                        {fare}
+                      </span>
+                    </div>
                   </div>
                 </button>
               ))}
             </div>
 
-            {/* CTA */}
-            <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow">
-              <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                <div className="text-center sm:text-left">
-                  <p className="text-sm text-emerald-700">Estimación</p>
-                  <p className="text-xl font-bold text-emerald-800">{eta} • {fare}</p>
-                </div>
-                <button
-                  onClick={requestRide}
-                  className={clsx(
-                    "w-full sm:w-auto rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 py-3 text-white shadow-lg transition-all hover:from-emerald-600 hover:to-emerald-700",
-                    looking && "animate-pulse"
+            {/* Enhanced CTA button */}
+            <div className="relative">
+              <button
+                onClick={requestRide}
+                className={clsx(
+                  "group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500 p-6 font-bold text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/25",
+                  looking && "animate-pulse"
+                )}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 opacity-0 transition-opacity group-hover:opacity-100"></div>
+                <div className="relative z-10 flex items-center justify-center gap-3">
+                  {looking ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span className="text-lg">Conectando conductor...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-xl">🚀</span>
+                      <span className="text-lg">Solicitar RideNow</span>
+                      <div className="ml-2 text-sm opacity-80">{eta} • {fare}</div>
+                    </>
                   )}
-                >
-                  {looking ? "Buscando conductor…" : "Pedir viaje"}
-                </button>
-              </div>
+                </div>
+              </button>
             </div>
           </div>
 
-          {/* Map / live area */}
-          <div className="order-first md:order-last">
-            <div className="relative h-[420px] w-full overflow-hidden rounded-3xl border border-sky-200 bg-white shadow-xl">
-              {/* faux map */}
-              <div className="absolute inset-0 grid grid-cols-12 grid-rows-12 opacity-70">
-                {Array.from({ length: 144 }).map((_, i) => (
-                  <div key={i} className="border border-sky-50" />
-                ))}
-              </div>
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-sky-50/60 via-transparent to-sky-100/60" />
-              {/* car marker */}
-              <div className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2">
-                <div className="rounded-xl bg-sky-600 px-3 py-1 text-white shadow">{rideType === "moto" ? "🏍️" : "🚗"} en camino</div>
-              </div>
-              {/* pins */}
-              {pickup && (
-                <div className="absolute bottom-10 left-8 rounded-full bg-sky-600 px-3 py-1 text-xs font-semibold text-white shadow">Origen</div>
-              )}
-              {dropoff && (
-                <div className="absolute right-8 top-10 rounded-full bg-fuchsia-600 px-3 py-1 text-xs font-semibold text-white shadow">Destino</div>
-              )}
+          {/* Right side - Interactive map */}
+          <div className="relative">
+            <div className="h-[600px] w-full overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-br from-slate-800 to-slate-900 shadow-2xl">
+              {/* Dynamic map grid */}
+              <div className="absolute inset-0">
+                <div className="absolute inset-0 grid grid-cols-16 grid-rows-16 opacity-20">
+                  {Array.from({ length: 256 }).map((_, i) => (
+                    <div 
+                      key={i} 
+                      className={clsx(
+                        "border border-cyan-500/20 transition-all duration-1000",
+                        mapAnimation && Math.random() > 0.8 && "bg-cyan-500/30"
+                      )}
+                    />
+                  ))}
+                </div>
+                
+                {/* Animated route line */}
+                <svg className="absolute inset-0 w-full h-full">
+                  <path
+                    d="M 100 400 Q 200 200 400 300 Q 500 400 600 200"
+                    stroke="url(#routeGradient)"
+                    strokeWidth="4"
+                    fill="none"
+                    className="opacity-80"
+                    strokeDasharray="10 5"
+                    strokeDashoffset={mapAnimation ? "-100" : "0"}
+                    style={{ transition: "stroke-dashoffset 2s ease-in-out" }}
+                  />
+                  <defs>
+                    <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#10b981" />
+                      <stop offset="50%" stopColor="#06b6d4" />
+                      <stop offset="100%" stopColor="#3b82f6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
 
-              {/* mini info card */}
-              <div className="absolute bottom-0 left-0 right-0 m-3 rounded-2xl border border-sky-200 bg-white/90 p-4 shadow-lg backdrop-blur">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <img src="/driver-avatar.png" alt="Conductor" className="h-10 w-10 rounded-xl border border-slate-200 object-cover" />
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">Carlos M.</p>
-                      <p className="text-xs text-slate-600">Toyota Yaris • 506-123 ABC</p>
+                {/* Dynamic car markers */}
+                <div className="absolute inset-0">
+                  {[
+                    { x: '20%', y: '30%', type: 'available' },
+                    { x: '60%', y: '20%', type: 'busy' },
+                    { x: '40%', y: '70%', type: 'available' },
+                    { x: '80%', y: '60%', type: 'available' }
+                  ].map((car, i) => (
+                    <div
+                      key={i}
+                      className="absolute animate-bounce"
+                      style={{ 
+                        left: car.x, 
+                        top: car.y,
+                        animationDelay: `${i * 500}ms`,
+                        animationDuration: '3s'
+                      }}
+                    >
+                      <div className={clsx(
+                        "rounded-full p-2 text-lg shadow-lg",
+                        car.type === 'available' 
+                          ? "bg-emerald-500 text-white" 
+                          : "bg-gray-500 text-white opacity-60"
+                      )}>
+                        🚗
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pickup and dropoff pins */}
+                {pickup && (
+                  <div className="absolute bottom-20 left-8 animate-pulse">
+                    <div className="rounded-full bg-emerald-500 px-4 py-2 font-bold text-white shadow-lg">
+                      📍 Origen
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="rounded-md bg-amber-50 px-2 py-1 font-semibold text-amber-700 ring-1 ring-amber-200">4.9★</span>
-                    <button className="rounded-md border border-sky-200 bg-white px-3 py-1 text-sky-700 hover:bg-sky-50">Llamar</button>
+                )}
+                {dropoff && (
+                  <div className="absolute right-8 top-16 animate-pulse">
+                    <div className="rounded-full bg-rose-500 px-4 py-2 font-bold text-white shadow-lg">
+                      🎯 Destino
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Driver card overlay */}
+              {showDriverCard && (
+                <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-white/20 bg-black/60 backdrop-blur-xl p-4 shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
+                          CM
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-black"></div>
+                      </div>
+                      <div>
+                        <p className="font-bold text-white">Carlos Méndez</p>
+                        <p className="text-sm text-white/70">Toyota Yaris • ABC-123</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex text-yellow-400 text-xs">★★★★★</div>
+                          <span className="text-xs text-white/60">4.9 • 1,247 viajes</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-600 transition-all">
+                        📞 Llamar
+                      </button>
+                      <button className="rounded-xl border border-white/30 bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20 transition-all">
+                        💬 Mensaje
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* safety row */}
-            <div className="mt-3 flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700">
-              <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-500"/> Seguro de viaje incluido</span>
-              <span className="hidden sm:inline">Centro de ayuda 911 / 1322</span>
+              )}
             </div>
           </div>
         </section>
 
-        {/* Recent & promos */}
+        {/* Enhanced bottom section */}
         <section
           className={clsx(
-            "grid grid-cols-1 gap-4 md:grid-cols-3",
-            "transition-all duration-700 delay-200",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            "grid grid-cols-1 md:grid-cols-3 gap-6",
+            "transition-all duration-1000 delay-500",
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           )}
         >
-          <div className="rounded-3xl border border-sky-200 bg-white p-5 shadow">
-            <h3 className="mb-3 text-base font-bold text-sky-700">Viajes recientes</h3>
-            <ul className="space-y-2 text-sm text-slate-700">
-              {["Casa → TEC", "Mercado → Casa", "Trabajo → Gimnasio"].map((it, i) => (
-                <li key={i} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
-                  <span>{it}</span>
-                  <button className="text-sky-700 hover:underline" onClick={() => setDropoff(it.split("→")[1].trim())}>Repetir</button>
-                </li>
+          {/* Activity card */}
+          <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-bold text-white">Actividad reciente</h3>
+            <div className="space-y-3">
+              {[
+                { route: "Casa → TEC Cartago", time: "Hace 2h", price: "₡2,400" },
+                { route: "Centro → Universidad", time: "Ayer", price: "₡1,800" },
+                { route: "Aeropuerto → Hotel", time: "3 días", price: "₡4,200" }
+              ].map((trip, i) => (
+                <div key={i} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-3 hover:bg-white/10 transition-all">
+                  <div>
+                    <p className="text-sm font-medium text-white">{trip.route}</p>
+                    <p className="text-xs text-white/60">{trip.time}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-emerald-400">{trip.price}</p>
+                    <button className="text-xs text-cyan-400 hover:underline">Repetir</button>
+                  </div>
+                </div>
               ))}
-            </ul>
-          </div>
-          <div className="rounded-3xl border border-sky-200 bg-white p-5 shadow">
-            <h3 className="mb-3 text-base font-bold text-sky-700">Métodos de pago</h3>
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1">💳 Visa</span>
-              <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1">💳 Mastercard</span>
-              <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1">💵 Efectivo</span>
-              <button className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-1 text-sky-700 hover:bg-sky-100">+ Agregar</button>
             </div>
           </div>
-          <div className="rounded-3xl border border-fuchsia-200 bg-gradient-to-br from-white to-fuchsia-50 p-5 shadow">
-            <h3 className="mb-2 text-base font-bold text-fuchsia-700">Promoción activa</h3>
-            <p className="text-sm text-fuchsia-700">10% de descuento en viajes a aeropuerto hoy.</p>
-            <button className="mt-3 rounded-xl bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700">Usar código: AERO10</button>
+
+          {/* Payment methods */}
+          <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-bold text-white">Métodos de pago</h3>
+            <div className="space-y-3">
+              {[
+                { type: "Visa", last4: "4242", primary: true },
+                { type: "Mastercard", last4: "8888", primary: false },
+                { type: "Efectivo", last4: "", primary: false }
+              ].map((card, i) => (
+                <div key={i} className={clsx(
+                  "flex items-center justify-between rounded-xl border p-3 transition-all",
+                  card.primary 
+                    ? "border-emerald-500/50 bg-emerald-500/20" 
+                    : "border-white/10 bg-white/5 hover:bg-white/10"
+                )}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                      {card.type === "Efectivo" ? "💵" : "💳"}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">{card.type}</p>
+                      {card.last4 && <p className="text-xs text-white/60">•••• {card.last4}</p>}
+                    </div>
+                  </div>
+                  {card.primary && <span className="text-xs text-emerald-400 font-medium">Principal</span>}
+                </div>
+              ))}
+              <button className="w-full rounded-xl border border-dashed border-white/30 bg-white/5 p-3 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                + Agregar método
+              </button>
+            </div>
+          </div>
+
+          {/* Promo card */}
+          <div className="rounded-2xl border border-pink-500/30 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-blue-500/20 backdrop-blur-xl p-6 shadow-xl">
+            <div className="mb-4 flex items-center gap-2">
+              <span className="text-2xl">🎉</span>
+              <h3 className="text-lg font-bold text-white">Oferta especial</h3>
+            </div>
+            <p className="mb-4 text-sm text-white/90">
+              ¡20% OFF en tu próximo viaje nocturno! Válido hasta medianoche.
+            </p>
+            <div className="space-y-3">
+              <div className="rounded-xl border border-pink-400/30 bg-pink-500/20 p-3">
+                <p className="text-center font-mono text-lg font-bold text-pink-200">NIGHT20</p>
+              </div>
+              <button className="w-full rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 py-3 font-bold text-white hover:from-pink-600 hover:to-purple-600 transition-all">
+                Usar código
+              </button>
+            </div>
           </div>
         </section>
-      </main>
-
-      {/* Bottom navigation */}
-      <nav className="sticky bottom-0 z-30 border-t border-slate-200 bg-white/80 backdrop-blur">
-        <div className="mx-auto grid max-w-6xl grid-cols-4 text-center text-xs">
+      {/* Modern bottom nav */}
+      <nav className="sticky bottom-0 z-30 border-t border-white/10 bg-black/40 backdrop-blur-xl">
+        <div className="mx-auto grid max-w-6xl grid-cols-4 px-4">
           {[
-            { t: "Inicio", i: "🏠" },
-            { t: "Viajes", i: "🧭" },
-            { t: "Billetera", i: "💼" },
-            { t: "Perfil", i: "👤" },
+            { name: "Inicio", icon: "🏠", active: true, href: "/" },
+            { name: "Viajes", icon: "🧭", active: false, href: "/admin" },
+            { name: "Wallet", icon: "💳", active: false, href: "/wallet" },
+            { name: "Perfil", icon: "👤", active: false, href: "/perfil" },
           ].map((tab) => (
-            <button key={tab.t} className="px-3 py-3 font-medium text-slate-700 hover:bg-slate-50">
-              <div className="text-lg">{tab.i}</div>
-              <div>{tab.t}</div>
-            </button>
+            <a 
+              key={tab.name} 
+              href={tab.href}
+              className={clsx(
+                "flex flex-col items-center gap-1 py-4 text-xs font-medium transition-all",
+                tab.active 
+                  ? "text-cyan-400" 
+                  : "text-white/60 hover:text-white"
+              )}
+            >
+              <div className={clsx(
+                "rounded-xl p-2 transition-all",
+                tab.active 
+                  ? "bg-cyan-500/20 text-lg" 
+                  : "text-base hover:bg-white/10"
+              )}>
+                {tab.icon}
+              </div>
+              <span>{tab.name}</span>
+            </a>
           ))}
         </div>
       </nav>
 
-      {/* floating quick actions */}
-      <div className="pointer-events-none fixed bottom-24 right-4 z-40 flex flex-col gap-2">
-        <button className="pointer-events-auto rounded-full bg-sky-600 p-3 text-white shadow-lg hover:bg-sky-700" title="Centro de ayuda">❔</button>
-        <button className="pointer-events-auto rounded-full bg-emerald-600 p-3 text-white shadow-lg hover:bg-emerald-700" title="Compartir viaje">🔗</button>
+      {/* Floating action buttons */}
+      <div className="fixed bottom-20 right-4 z-40 flex flex-col gap-3">
+        <button className="rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 p-4 text-white shadow-2xl hover:scale-110 transition-all" title="Centro de ayuda">
+          ❓
+        </button>
+        <button className="rounded-full bg-gradient-to-r from-emerald-500 to-green-500 p-4 text-white shadow-2xl hover:scale-110 transition-all" title="Compartir ubicación">
+          📍
+        </button>
       </div>
-
-      <footer className="border-t border-sky-100 bg-gradient-to-r from-sky-900 to-sky-800 px-4 py-8 text-center text-sky-100">
-        <p className="text-sm">© 2025 RideNow Costa Rica • Versión 1.0</p>
-        <p className="mt-1 text-xs opacity-80">Operación autorizada • (506) 2000-0000</p>
-      </footer>
+      </main>
     </div>
   );
 }
