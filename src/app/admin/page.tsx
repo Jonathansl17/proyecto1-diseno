@@ -125,6 +125,21 @@ export default function TripsScreen() {
       vehicle: 'Hyundai Accent • MNO-345',
       rideType: 'standard',
       paymentMethod: 'Visa •••• 4242'
+    },
+    {
+      id: '7',
+      status: 'completed',
+      from: 'Plaza el Encuentro',
+      to: 'Campus ITCR San Carlos',
+      date: '2 semanas',
+      time: '11:30',
+      duration: '15 min',
+      distance: '10.5 km',
+      price: '₡3865',
+      driver: { name: 'Jonathan Sancho', rating: 4.9, avatar: 'JS' },
+      vehicle: 'Toyota Tacoma • BGA-324',
+      rideType: 'premium',
+      paymentMethod: 'Visa •••• 9543'
     }
   ];
 
@@ -188,7 +203,11 @@ export default function TripsScreen() {
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
           <div className="flex items-center gap-4">
-            <button className="rounded-xl border border-white/20 bg-white/10 p-2 backdrop-blur hover:bg-white/20 transition-all">
+            <button
+              className="rounded-xl border border-white/20 bg-white/10 p-2 backdrop-blur hover:bg-white/20 transition-all"
+              onClick={() => window.history.back()}
+              aria-label="Volver"
+            >
               ←
             </button>
             <div>
