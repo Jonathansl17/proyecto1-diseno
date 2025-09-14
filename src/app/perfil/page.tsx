@@ -57,6 +57,13 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<'profile' | 'settings' | 'achievements'>('profile');
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showSecurity, setShowSecurity] = useState(false);
+  const [showHelpCenter, setShowHelpCenter] = useState(false);
+  const [showContactSupport, setShowContactSupport] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
+  const [showSavedAddresses, setShowSavedAddresses] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
@@ -68,7 +75,7 @@ export default function ProfileScreen() {
     email: 'ana.rodriguez@email.com',
     phone: '+506 8765-4321',
     avatar: 'AM',
-    memberSince: 'Septiembre 2025',
+    memberSince: 'Septiembre 2025 ',
     rating: 4.9,
     totalTrips: 47,
     favoriteLocations: ['TEC Cartago', 'Universidad de Costa Rica', 'Mall San Pedro'],
@@ -147,14 +154,14 @@ export default function ProfileScreen() {
       items: [
         { icon: '👤', label: 'Información personal', action: () => setShowEditProfile(true) },
         { icon: '🔒', label: 'Seguridad y privacidad', action: () => setShowSecurity(true) },
-        { icon: '💳', label: 'Métodos de pago', action: () => {} },
-        { icon: '🏠', label: 'Direcciones guardadas', action: () => {} }
+        { icon: '💳', label: 'Métodos de pago', action: () => setShowPaymentMethods(true) },
+        { icon: '🏠', label: 'Direcciones guardadas', action: () => setShowSavedAddresses(true) }
       ]
     },
     {
       category: 'Preferencias',
       items: [
-        { icon: '🔔', label: 'Notificaciones', action: () => {} },
+        { icon: '🔔', label: 'Notificaciones', action: () => setShowNotifications(true) },
         { icon: '🌙', label: 'Modo oscuro', action: () => {}, toggle: userProfile.preferences.darkMode },
         { icon: '🌍', label: 'Idioma', action: () => {}, value: 'Español' },
         { icon: '🎯', label: 'Reserva automática', action: () => {}, toggle: userProfile.preferences.autoBook }
@@ -163,17 +170,17 @@ export default function ProfileScreen() {
     {
       category: 'Soporte',
       items: [
-        { icon: '❓', label: 'Centro de ayuda', action: () => {} },
-        { icon: '💬', label: 'Contactar soporte', action: () => {} },
-        { icon: '📋', label: 'Términos y condiciones', action: () => {} },
-        { icon: '🔐', label: 'Política de privacidad', action: () => {} }
+        { icon: '❓', label: 'Centro de ayuda', action: () => setShowHelpCenter(true) },
+        { icon: '💬', label: 'Contactar soporte', action: () => setShowContactSupport(true) },
+        { icon: '📋', label: 'Términos y condiciones', action: () => setShowTerms(true) },
+        { icon: '🔐', label: 'Política de privacidad', action: () => setShowPrivacy(true) }
       ]
     },
     {
       category: 'Aplicación',
       items: [
-        { icon: '⭐', label: 'Calificar app', action: () => {} },
-        { icon: '📤', label: 'Compartir app', action: () => {} },
+        { icon: '⭐', label: 'Calificar app', action: () => window.open('https://play.google.com/store/apps/details?id=com.tuapp', '_blank') },
+        { icon: '📤', label: 'Compartir app', action: () => navigator.share({ title: 'Mi App de Transporte', text: '¡Descarga esta increíble app!', url: 'https://tuapp.com' }) },
         { icon: 'ℹ️', label: 'Acerca de', action: () => {}, value: 'v2.1.0' },
         { icon: '🚪', label: 'Cerrar sesión', action: () => {}, danger: true }
       ]
@@ -641,6 +648,369 @@ export default function ProfileScreen() {
                       </div>
                     </div>
                   </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Help Center Modal */}
+      {showHelpCenter && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Centro de Ayuda</h3>
+                <button
+                  onClick={() => setShowHelpCenter(false)}
+                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { title: '¿Cómo reservar un viaje?', icon: '🚗', description: 'Aprende a reservar tu primer viaje paso a paso' },
+                    { title: 'Problemas de pago', icon: '💳', description: 'Soluciona problemas con tus métodos de pago' },
+                    { title: 'Cancelar viaje', icon: '❌', description: 'Cómo cancelar o modificar tu viaje' },
+                    { title: 'Calificar conductor', icon: '⭐', description: 'Cómo calificar y dejar comentarios' },
+                    { title: 'Problemas técnicos', icon: '🔧', description: 'Soluciona problemas de la aplicación' },
+                    { title: 'Seguridad', icon: '🛡️', description: 'Consejos de seguridad para tus viajes' }
+                  ].map((item, i) => (
+                    <button
+                      key={i}
+                      className="rounded-xl border border-white/20 bg-white/5 p-4 hover:bg-white/10 transition-all text-left"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 p-2 text-xl">
+                          {item.icon}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-white mb-1">{item.title}</h4>
+                          <p className="text-sm text-white/60">{item.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Support Modal */}
+      {showContactSupport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Contactar Soporte</h3>
+                <button
+                  onClick={() => setShowContactSupport(false)}
+                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-white text-2xl mx-auto mb-3">
+                    💬
+                  </div>
+                  <p className="text-white/70">¿Necesitas ayuda? Contáctanos por cualquiera de estos medios:</p>
+                </div>
+
+                <div className="space-y-3">
+                  {[
+                    { method: 'WhatsApp', contact: '+506 8888-0000', icon: '📱', action: () => window.open('https://wa.me/50688880000', '_blank') },
+                    { method: 'Email', contact: 'soporte@miapp.com', icon: '📧', action: () => window.open('mailto:soporte@miapp.com', '_blank') },
+                    { method: 'Teléfono', contact: '+506 2222-0000', icon: '📞', action: () => window.open('tel:+50622220000', '_blank') },
+                    { method: 'Chat en vivo', contact: 'Disponible 24/7', icon: '💬', action: () => {} }
+                  ].map((contact, i) => (
+                    <button
+                      key={i}
+                      onClick={contact.action}
+                      className="w-full rounded-xl border border-white/20 bg-white/5 p-4 hover:bg-white/10 transition-all text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="rounded-lg bg-gradient-to-r from-purple-500 to-violet-500 p-2">
+                          {contact.icon}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-white">{contact.method}</h4>
+                          <p className="text-sm text-white/60">{contact.contact}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Terms and Conditions Modal */}
+      {showTerms && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Términos y Condiciones</h3>
+                <button
+                  onClick={() => setShowTerms(false)}
+                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                <div className="space-y-4 text-sm text-white/80">
+                  <div>
+                    <h4 className="font-bold text-white mb-2">1. Aceptación de Términos</h4>
+                    <p>Al usar esta aplicación, aceptas estos términos y condiciones. Si no estás de acuerdo, no uses el servicio.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-white mb-2">2. Uso del Servicio</h4>
+                    <p>Nuestra plataforma conecta pasajeros con conductores. No somos responsables por la calidad del servicio de transporte.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-white mb-2">3. Pagos y Tarifas</h4>
+                    <p>Las tarifas se calculan automáticamente. Los pagos se procesan de forma segura a través de nuestros socios de pago.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-white mb-2">4. Cancelaciones</h4>
+                    <p>Puedes cancelar tu viaje hasta 5 minutos antes del inicio. Las cancelaciones tardías pueden incurrir en cargos.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-white mb-2">5. Responsabilidad</h4>
+                    <p>No somos responsables por daños, pérdidas o lesiones que puedan ocurrir durante el viaje.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-white mb-2">6. Modificaciones</h4>
+                    <p>Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios se notificarán a través de la app.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Privacy Policy Modal */}
+      {showPrivacy && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Política de Privacidad</h3>
+                <button
+                  onClick={() => setShowPrivacy(false)}
+                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                <div className="space-y-4 text-sm text-white/80">
+                  <div>
+                    <h4 className="font-bold text-white mb-2">1. Información que Recopilamos</h4>
+                    <p>Recopilamos información personal como nombre, email, teléfono y ubicación para brindar el servicio de transporte.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-white mb-2">2. Uso de la Información</h4>
+                    <p>Usamos tu información para conectar con conductores, procesar pagos y mejorar nuestros servicios.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-white mb-2">3. Compartir Información</h4>
+                    <p>No vendemos tu información personal. Solo la compartimos con conductores y socios necesarios para el servicio.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-white mb-2">4. Seguridad de Datos</h4>
+                    <p>Implementamos medidas de seguridad para proteger tu información personal contra acceso no autorizado.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-white mb-2">5. Tus Derechos</h4>
+                    <p>Tienes derecho a acceder, modificar o eliminar tu información personal en cualquier momento.</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-bold text-white mb-2">6. Cookies</h4>
+                    <p>Usamos cookies para mejorar tu experiencia y analizar el uso de la aplicación.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Methods Modal */}
+      {showPaymentMethods && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Métodos de Pago</h3>
+                <button
+                  onClick={() => setShowPaymentMethods(false)}
+                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  {[
+                    { type: 'Tarjeta de Crédito', number: '**** **** **** 1234', icon: '💳', primary: true },
+                    { type: 'PayPal', number: 'ana.rodriguez@email.com', icon: '🅿️', primary: false },
+                    { type: 'Apple Pay', number: 'Configurado', icon: '🍎', primary: false }
+                  ].map((method, i) => (
+                    <div
+                      key={i}
+                      className={`rounded-xl border p-4 ${method.primary ? 'border-purple-500/50 bg-purple-500/10' : 'border-white/20 bg-white/5'}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-lg bg-gradient-to-r from-purple-500 to-violet-500 p-2">
+                            {method.icon}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-white">{method.type}</h4>
+                            <p className="text-sm text-white/60">{method.number}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          {method.primary && (
+                            <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">Principal</span>
+                          )}
+                          <button className="text-xs text-white/60 hover:text-white">Editar</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <button className="w-full rounded-xl border border-dashed border-white/30 bg-white/5 py-4 text-white hover:bg-white/10 transition-all">
+                  + Agregar método de pago
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Saved Addresses Modal */}
+      {showSavedAddresses && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Direcciones Guardadas</h3>
+                <button
+                  onClick={() => setShowSavedAddresses(false)}
+                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  {[
+                    { name: 'Casa', address: 'San José, Costa Rica', icon: '🏠' },
+                    { name: 'Trabajo', address: 'TEC Cartago, Costa Rica', icon: '🏢' },
+                    { name: 'Universidad', address: 'Universidad de Costa Rica', icon: '🎓' }
+                  ].map((address, i) => (
+                    <div
+                      key={i}
+                      className="rounded-xl border border-white/20 bg-white/5 p-4 hover:bg-white/10 transition-all"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-lg bg-gradient-to-r from-emerald-500 to-green-500 p-2">
+                            {address.icon}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-white">{address.name}</h4>
+                            <p className="text-sm text-white/60">{address.address}</p>
+                          </div>
+                        </div>
+                        <button className="text-xs text-white/60 hover:text-white">Editar</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <button className="w-full rounded-xl border border-dashed border-white/30 bg-white/5 py-4 text-white hover:bg-white/10 transition-all">
+                  + Agregar dirección
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notifications Modal */}
+      {showNotifications && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Configuración de Notificaciones</h3>
+                <button
+                  onClick={() => setShowNotifications(false)}
+                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  { title: 'Viajes y reservas', description: 'Notificaciones sobre el estado de tus viajes', enabled: true },
+                  { title: 'Promociones', description: 'Ofertas especiales y descuentos', enabled: true },
+                  { title: 'Recordatorios', description: 'Recordatorios de viajes programados', enabled: false },
+                  { title: 'Actualizaciones de la app', description: 'Nuevas funciones y mejoras', enabled: true },
+                  { title: 'Notificaciones de seguridad', description: 'Alertas importantes de seguridad', enabled: true }
+                ].map((notification, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl border border-white/20 bg-white/5 p-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-bold text-white mb-1">{notification.title}</h4>
+                        <p className="text-sm text-white/60">{notification.description}</p>
+                      </div>
+                      <div className={clsx(
+                        "w-12 h-6 rounded-full transition-all",
+                        notification.enabled ? "bg-emerald-500" : "bg-white/20"
+                      )}>
+                        <div className={clsx(
+                          "w-5 h-5 rounded-full bg-white transition-all transform mt-0.5",
+                          notification.enabled ? "translate-x-6" : "translate-x-0.5"
+                        )} />
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
