@@ -65,12 +65,12 @@ export default function WalletScreen() {
     { id: "7", type: "cashout", status: "pending", amount: -5000, description: "Retiro a cuenta bancaria", date: "5 días", time: "10:00", reference: "OUT-2025-001" },
   ];
 
-  const paymentMethods: PaymentMethod[] = [
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
     { id: "1", type: "card", name: "Visa", last4: "4242", brand: "VISA", isDefault: true, icon: "💳" },
     { id: "2", type: "card", name: "Mastercard", last4: "8888", brand: "MASTERCARD", isDefault: false, icon: "💳" },
     { id: "3", type: "bank", name: "Banco Nacional", last4: "1234", brand: "BN", isDefault: false, icon: "🏦" },
     { id: "4", type: "digital", name: "SINPE Móvil", last4: "8765", brand: "SINPE", isDefault: false, icon: "📱" },
-  ];
+  ]);
 
   // -------- Helpers UI --------
   const typeLabel: Record<TxType, string> = {
@@ -148,7 +148,7 @@ export default function WalletScreen() {
 
     // Orden
     list.sort((a, b) => {
-      const va = a.date === "Hoy" ? 0 : a.date === "Ayer" ? 1 : 2; // demo: “Hoy” antes
+      const va = a.date === "Hoy" ? 0 : a.date === "Ayer" ? 1 : 2; // demo: "Hoy" antes
       const vb = b.date === "Hoy" ? 0 : b.date === "Ayer" ? 1 : 2;
       const cmp = va - vb;
       return sortDesc ? cmp : -cmp;
@@ -168,7 +168,7 @@ export default function WalletScreen() {
 
   const setDefaultMethod = (id: string) => {
     // Demo local: solo UI
-    paymentMethods.forEach((m) => (m.isDefault = m.id === id));
+    setPaymentMethods(prev => prev.map(m => ({...m, isDefault: m.id === id})));
   };
 
   // -------- UI --------
@@ -319,7 +319,7 @@ export default function WalletScreen() {
                   <span className="text-xs text-white/60">₡30,000</span>
                 </div>
                 <div className="mt-2 h-2 w-full rounded-full bg-white/10">
-                  <div className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500" style={{ width: ${Math.min((walletStats.balance / 30000) * 100, 100)}% }} />
+                  <div className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500" style={{ width: `${Math.min((walletStats.balance / 30000) * 100, 100)}%` }} />
                 </div>
                 <p className="mt-1 text-xs text-white/60">Progreso hacia tu meta mensual</p>
               </div>
@@ -341,7 +341,7 @@ export default function WalletScreen() {
                     <div className="h-2 w-full rounded-full bg-white/10">
                       <div
                         className={clsx("h-2 rounded-full bg-gradient-to-r", typePill[d.type])}
-                        style={{ width: ${d.pct}% }}
+                        style={{ width: `${d.pct}%` }}
                       />
                     </div>
                   </div>
@@ -423,7 +423,7 @@ export default function WalletScreen() {
                   <div
                     key={t.id}
                     className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl hover:bg-white/10 transition"
-                    style={{ animationDelay: ${i * 50}ms }}
+                    style={{ animationDelay: `${i * 50}ms` }}
                   >
                     {/* línea de estado a la izquierda */}
                     <div className={clsx("absolute left-0 top-0 h-full w-1 bg-gradient-to-b", typePill[t.type])} />
@@ -441,7 +441,7 @@ export default function WalletScreen() {
                           <span className={clsx("text-xs", statusColor[t.status])}>
                             {t.status === "completed" ? "Completado" : t.status === "pending" ? "Pendiente" : "Fallido"}
                           </span>
-                          <span className="text-xs text-white/50">• {t.date} {t.time && • ${t.time}}</span>
+                          <span className="text-xs text-white/50">• {t.date} {t.time && `• ${t.time}`}</span>
                         </div>
                         <p className="font-medium">{t.description}</p>
                         <div className="mt-1 flex flex-wrap gap-3 text-xs text-white/60">
@@ -490,7 +490,7 @@ export default function WalletScreen() {
                 <div
                   key={m.id}
                   className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl hover:bg-white/10 transition"
-                  style={{ animationDelay: ${i * 60}ms }}
+                  style={{ animationDelay: `${i * 60}ms` }}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -498,7 +498,7 @@ export default function WalletScreen() {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-medium">
-                            {m.name} {m.last4 ? • • • • ${m.last4} : ""}
+                            {m.name} {m.last4 ? `• • • • ${m.last4}` : ""}
                           </p>
                           {m.isDefault && (
                             <span className="rounded-full border border-emerald-400/60 bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300">
@@ -592,7 +592,7 @@ export default function WalletScreen() {
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{m.icon}</span>
                         <span className="text-white font-medium">
-                          {m.name} {m.last4 ? • • • • ${m.last4} : ""}
+                          {m.name} {m.last4 ? `• • • • ${m.last4}` : ""}
                         </span>
                       </div>
                       <span className="text-xs text-emerald-300">Seleccionado</span>
@@ -622,7 +622,7 @@ export default function WalletScreen() {
                   disabled={!rechargeAmount}
                   className="flex-1 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 py-3 text-sm font-bold disabled:opacity-50"
                 >
-                  Recargar {rechargeAmount ? ₡${parseInt(rechargeAmount).toLocaleString("es-CR")} : ""}
+                  Recargar {rechargeAmount ? `₡${parseInt(rechargeAmount).toLocaleString("es-CR")}` : ""}
                 </button>
               </div>
             </div>
@@ -654,7 +654,7 @@ export default function WalletScreen() {
                 <button
                   key={m.type}
                   className={clsx("rounded-xl border border-white/15 bg-white/5 p-4 hover:bg-white/10 transition")}
-                  onClick={() => alert(Demo: agregar ${m.type})}
+                  onClick={() => alert(`Demo: agregar ${m.type}`)}
                 >
                   <div className={clsx("mb-2 inline-flex rounded-lg bg-gradient-to-r p-2 text-xl", m.color)}>{m.icon}</div>
                   <p className="text-sm font-medium">{m.type}</p>

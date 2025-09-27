@@ -15,7 +15,22 @@ interface RideOption {
   bgGradient: string;
 }
 
-export default function Home() {
+interface PopularDestination {
+  name: string;
+  distance: string;
+  price: string;
+  icon: string;
+  popular: boolean;
+}
+
+interface Notification {
+  id: string;
+  type: 'trip' | 'promo' | 'alert';
+  message: string;
+  time: string;
+}
+
+export default function EnhancedHomeScreen() {
   const [isVisible, setIsVisible] = useState(false);
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
@@ -24,16 +39,33 @@ export default function Home() {
   const [fare, setFare] = useState("—");
   const [looking, setLooking] = useState(false);
   const [mapAnimation, setMapAnimation] = useState(false);
-  const [showDriverCard, setShowDriverCard] = useState(true);
+  const [showDriverCard, setShowDriverCard] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState("Obteniendo ubicación...");
+  const [currentPromo, setCurrentPromo] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
+    // Simulate getting current location
+    setTimeout(() => {
+      setCurrentLocation("Avenida Central, San José Centro");
+    }, 1500);
+
     // Animate map periodically
     const interval = setInterval(() => {
       setMapAnimation(true);
       setTimeout(() => setMapAnimation(false), 2000);
+    }, 8000);
+
+    // Rotate promotions
+    const promoInterval = setInterval(() => {
+      setCurrentPromo(prev => (prev + 1) % promotions.length);
     }, 5000);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(promoInterval);
+    };
   }, []);
 
   // Enhanced fare/eta calculator with more dynamic pricing
@@ -52,12 +84,82 @@ export default function Home() {
     setFare(`₡${(base * distance * multipliers[rideType as keyof typeof multipliers]).toLocaleString("es-CR")}`);
   }, [pickup, dropoff, rideType]);
 
+  const notifications: Notification[] = [
+    { id: '1', type: 'trip', message: 'Tu viaje programado para mañana 06:00', time: '2h' },
+    { id: '2', type: 'promo', message: '20% OFF en viajes nocturnos hasta medianoche', time: '4h' },
+    { id: '3', type: 'alert', message: 'Nueva zona de cobertura disponible en Cartago', time: '1d' }
+  ];
+
+  const promotions = [
+    {
+      title: "¡Viajes nocturnos con descuento!",
+      desc: "20% OFF de 6PM a 6AM",
+      code: "NIGHT20",
+      gradient: "from-purple-500 via-pink-500 to-rose-500",
+      icon: "🌙"
+    },
+    {
+      title: "¡Estudiantes viajan más barato!",
+      desc: "15% OFF mostrando carné estudiantil",
+      code: "STUDENT15",
+      gradient: "from-blue-500 via-cyan-500 to-teal-500",
+      icon: "🎓"
+    },
+    {
+      title: "¡EcoRide ahorra el planeta!",
+      desc: "Viajes eléctricos con 10% descuento",
+      code: "ECO10",
+      gradient: "from-green-500 via-emerald-500 to-lime-500",
+      icon: "🌱"
+    }
+  ];
+
+  const popularDestinations: PopularDestination[] = [
+    { name: "TEC Cartago", distance: "12 km", price: "₡2,800", icon: "🎓", popular: true },
+    { name: "UCR San Pedro", distance: "8 km", price: "₡2,200", icon: "🏛️", popular: true },
+    { name: "Centro San José", distance: "5 km", price: "₡1,800", icon: "🏢", popular: false },
+    { name: "Aeropuerto SJO", distance: "18 km", price: "₡4,500", icon: "✈️", popular: true },
+    { name: "Mall San Pedro", distance: "7 km", price: "₡2,000", icon: "🛍️", popular: false },
+    { name: "Estadio Nacional", distance: "6 km", price: "₡1,900", icon: "⚽", popular: false }
+  ];
+
+  const quickActions = [
+    {
+      name: "Nuevo Viaje",
+      desc: "Solicita tu ride ahora",
+      icon: "🚗",
+      gradient: "from-emerald-500 to-cyan-500",
+      action: () => document.getElementById('trip-form')?.scrollIntoView({ behavior: 'smooth' })
+    },
+    {
+      name: "Historial",
+      desc: "Ver viajes anteriores",
+      icon: "📋",
+      gradient: "from-blue-500 to-purple-500",
+      action: () => window.location.href = "/admin"
+    },
+    {
+      name: "Mi Wallet",
+      desc: "Gestionar pagos",
+      icon: "💳",
+      gradient: "from-purple-500 to-pink-500",
+      action: () => window.location.href = "/wallet"
+    },
+    {
+      name: "Mi Perfil",
+      desc: "Configurar cuenta",
+      icon: "👤",
+      gradient: "from-orange-500 to-red-500",
+      action: () => window.location.href = "/perfil"
+    }
+  ];
+
   function handleGeo() {
     if (!navigator.geolocation) return alert("Geolocalización no soportada");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-        setPickup(`Mi ubicación actual`);
+        setPickup(currentLocation);
       },
       () => alert("No se pudo obtener tu ubicación")
     );
@@ -115,14 +217,15 @@ export default function Home() {
 
   return (
     <div className="relative flex min-h-screen flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl animate-bounce"></div>
+      {/* Enhanced animated background elements */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/40 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-purple-500/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-0 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl animate-bounce delay-500"></div>
+        <div className="absolute top-1/3 right-0 w-72 h-72 bg-emerald-500/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
-      {/* Glassmorphic top bar */}
+      {/* Enhanced glassmorphic top bar with notifications */}
       <header
         className={clsx(
           "sticky top-0 z-30 border-b border-white/10 bg-black/20 backdrop-blur-xl",
@@ -149,6 +252,32 @@ export default function Home() {
               <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
               <span className="text-emerald-300">En línea</span>
             </div>
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative rounded-xl border border-white/20 bg-white/10 p-2 text-white backdrop-blur hover:bg-white/20 transition-all"
+              >
+                🔔
+                {notifications.length > 0 && (
+                  <div className="absolute -right-1 -top-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
+                    {notifications.length}
+                  </div>
+                )}
+              </button>
+              {showNotifications && (
+                <div className="absolute right-0 top-12 w-80 rounded-2xl border border-white/20 bg-black/90 backdrop-blur-xl p-4 shadow-2xl z-50">
+                  <h3 className="text-sm font-bold text-white mb-3">Notificaciones</h3>
+                  <div className="space-y-2">
+                    {notifications.map(notif => (
+                      <div key={notif.id} className="rounded-lg border border-white/10 bg-white/5 p-3 hover:bg-white/10 transition-all">
+                        <p className="text-sm text-white">{notif.message}</p>
+                        <p className="text-xs text-white/60">Hace {notif.time}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             <button className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur hover:bg-white/20 transition-all">
               24/7 Soporte
             </button>
@@ -157,20 +286,144 @@ export default function Home() {
       </header>
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-4 py-8">
-        {/* Main ride request area */}
+        {/* Dynamic promotional banner */}
         <section
           className={clsx(
-            "grid grid-cols-1 lg:grid-cols-2 gap-8",
+            "transition-all duration-1000 delay-100",
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          )}
+        >
+          <div className={`rounded-3xl border border-white/20 bg-gradient-to-r ${promotions[currentPromo].gradient} p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden`}>
+            <div className="absolute inset-0 bg-black/20"></div>
+            <div className="relative z-10 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="text-4xl">{promotions[currentPromo].icon}</div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">{promotions[currentPromo].title}</h2>
+                  <p className="text-white/90">{promotions[currentPromo].desc}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="rounded-xl bg-white/20 px-4 py-2 font-mono text-sm font-bold text-white">
+                  {promotions[currentPromo].code}
+                </div>
+                <button className="rounded-xl bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition-all">
+                  Usar ahora
+                </button>
+              </div>
+            </div>
+            <div className="absolute bottom-2 right-2 flex gap-2">
+              {promotions.map((_, i) => (
+                <div key={i} className={`w-2 h-2 rounded-full transition-all ${i === currentPromo ? 'bg-white' : 'bg-white/40'}`} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Current location and quick actions */}
+        <section
+          className={clsx(
+            "grid grid-cols-1 lg:grid-cols-3 gap-6",
             "transition-all duration-1000 delay-200",
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           )}
         >
-          {/* Left side - Controls */}
+          {/* Current location card */}
+          <div className="lg:col-span-1 rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 backdrop-blur-xl p-6 shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-white text-xl animate-pulse">
+                📍
+              </div>
+              <div>
+                <h3 className="font-bold text-white">Tu ubicación</h3>
+                <p className="text-sm text-white/70">Actualizada ahora</p>
+              </div>
+            </div>
+            <p className="text-white font-medium mb-4">{currentLocation}</p>
+            <button 
+              onClick={handleGeo}
+              className="w-full rounded-xl bg-emerald-500/20 border border-emerald-400/50 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-500/30 transition-all"
+            >
+              🔄 Actualizar ubicación
+            </button>
+          </div>
+
+          {/* Quick actions grid */}
+          <div className="lg:col-span-2 grid grid-cols-2 gap-4">
+            {quickActions.map((action, i) => (
+              <button
+                key={action.name}
+                onClick={action.action}
+                className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-6 shadow-xl hover:bg-white/10 hover:scale-105 transition-all duration-300"
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-20 group-hover:opacity-30 transition-opacity`}></div>
+                <div className="relative z-10">
+                  <div className="text-3xl mb-3">{action.icon}</div>
+                  <h3 className="font-bold text-white mb-1">{action.name}</h3>
+                  <p className="text-sm text-white/70">{action.desc}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Popular destinations carousel */}
+        <section
+          className={clsx(
+            "transition-all duration-1000 delay-300",
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          )}
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">
+              Destinos populares
+            </h2>
+            <button className="text-sm text-cyan-400 hover:underline">Ver todos</button>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4">
+            {popularDestinations.map((dest, i) => (
+              <button
+                key={dest.name}
+                onClick={() => {
+                  setDropoff(dest.name);
+                  document.getElementById('trip-form')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="group relative flex-none w-48 overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-4 shadow-xl hover:bg-white/10 hover:scale-105 transition-all duration-300"
+                style={{ animationDelay: `${i * 150}ms` }}
+              >
+                {dest.popular && (
+                  <div className="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full px-2 py-1 text-xs font-bold text-white">
+                    Popular
+                  </div>
+                )}
+                <div className="text-3xl mb-3">{dest.icon}</div>
+                <h3 className="font-bold text-white mb-1">{dest.name}</h3>
+                <p className="text-sm text-white/70 mb-2">{dest.distance}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-bold text-emerald-400">{dest.price}</span>
+                  <span className="text-cyan-400 group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Enhanced main ride request area */}
+        <section
+          id="trip-form"
+          className={clsx(
+            "grid grid-cols-1 lg:grid-cols-2 gap-8",
+            "transition-all duration-1000 delay-400",
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          )}
+        >
+          {/* Left side - Enhanced Controls */}
           <div className="space-y-6">
             {/* Trip planner card */}
             <div className="rounded-3xl border border-white/20 bg-white/10 backdrop-blur-xl p-6 shadow-2xl">
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">Planifica tu viaje</h2>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">¿A dónde vamos?</h2>
                 <button
                   onClick={() => {
                     const p = pickup;
@@ -179,7 +432,7 @@ export default function Home() {
                   }}
                   className="rounded-xl border border-cyan-500/50 bg-cyan-500/20 px-4 py-2 text-sm font-medium text-cyan-300 hover:bg-cyan-500/30 transition-all"
                 >
-                  ⇄ Swap
+                  ⇄ Intercambiar
                 </button>
               </div>
 
@@ -215,18 +468,21 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Quick destination chips */}
-              <div className="mt-6 flex flex-wrap gap-2">
-                {["🏠 Casa", "💼 Trabajo", "🛒 Centro", "🎓 Universidad", "✈️ Aeropuerto"].map((tag, i) => (
-                  <button
-                    key={tag}
-                    onClick={() => setDropoff(tag.split(" ")[1])}
-                    className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-medium text-white/80 hover:bg-white/20 hover:text-white transition-all backdrop-blur"
-                    style={{ animationDelay: `${i * 100}ms` }}
-                  >
-                    {tag}
-                  </button>
-                ))}
+              {/* Enhanced quick destination suggestions */}
+              <div className="mt-6">
+                <p className="text-sm text-white/70 mb-3">Sugerencias para ti:</p>
+                <div className="flex flex-wrap gap-2">
+                  {["🏠 Casa", "💼 Trabajo", "🎓 TEC", "🏛️ UCR", "✈️ Aeropuerto"].map((tag, i) => (
+                    <button
+                      key={tag}
+                      onClick={() => setDropoff(tag.split(" ")[1])}
+                      className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-medium text-white/80 hover:bg-white/20 hover:text-white transition-all backdrop-blur hover:scale-105"
+                      style={{ animationDelay: `${i * 100}ms` }}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -415,7 +671,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Enhanced bottom section */}
+        {/* Enhanced bottom section with scheduled trips */}
         <section
           className={clsx(
             "grid grid-cols-1 md:grid-cols-3 gap-6",
@@ -423,37 +679,40 @@ export default function Home() {
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           )}
         >
-          {/* Activity card */}
-          <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-6 shadow-xl">
-            <h3 className="mb-4 text-lg font-bold text-white">Actividad reciente</h3>
+          {/* Scheduled trips */}
+          <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-xl p-6 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center text-white">
+                ⏰
+              </div>
+              <h3 className="text-lg font-bold text-white">Próximos viajes</h3>
+            </div>
             <div className="space-y-3">
-              {[
-                { route: "Casa → TEC Cartago", time: "Hace 2h", price: "₡2,400" },
-                { route: "Centro → Universidad", time: "Ayer", price: "₡1,800" },
-                { route: "Aeropuerto → Hotel", time: "3 días", price: "₡4,200" }
-              ].map((trip, i) => (
-                <div key={i} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-3 hover:bg-white/10 transition-all">
-                  <div>
-                    <p className="text-sm font-medium text-white">{trip.route}</p>
-                    <p className="text-xs text-white/60">{trip.time}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-emerald-400">{trip.price}</p>
-                    <button className="text-xs text-cyan-400 hover:underline">Repetir</button>
-                  </div>
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                <p className="text-sm font-medium text-white">Aeropuerto SJO</p>
+                <p className="text-xs text-white/60">Mañana 06:00</p>
+                <div className="mt-2 flex justify-between items-center">
+                  <span className="text-sm text-purple-300">₡4,800</span>
+                  <button className="text-xs text-cyan-400 hover:underline">Modificar</button>
                 </div>
-              ))}
+              </div>
+              <button className="w-full rounded-xl border border-dashed border-white/30 bg-white/5 p-3 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                + Programar viaje
+              </button>
             </div>
           </div>
 
-          {/* Payment methods */}
+          {/* Enhanced payment methods */}
           <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-6 shadow-xl">
-            <h3 className="mb-4 text-lg font-bold text-white">Métodos de pago</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">Métodos de pago</h3>
+              <button className="text-sm text-cyan-400 hover:underline">Gestionar</button>
+            </div>
             <div className="space-y-3">
               {[
-                { type: "Visa", last4: "4242", primary: true },
-                { type: "Mastercard", last4: "8888", primary: false },
-                { type: "Efectivo", last4: "", primary: false }
+                { type: "Visa", last4: "4242", primary: true, balance: "₡8,450" },
+                { type: "Mastercard", last4: "8888", primary: false, balance: null },
+                { type: "Efectivo", last4: "", primary: false, balance: null }
               ].map((card, i) => (
                 <div key={i} className={clsx(
                   "flex items-center justify-between rounded-xl border p-3 transition-all",
@@ -467,37 +726,46 @@ export default function Home() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-white">{card.type}</p>
-                      {card.last4 && <p className="text-xs text-white/60">•••• {card.last4}</p>}
+                      <div className="flex items-center gap-2">
+                        {card.last4 && <p className="text-xs text-white/60">•••• {card.last4}</p>}
+                        {card.balance && <p className="text-xs text-emerald-400">{card.balance}</p>}
+                      </div>
                     </div>
                   </div>
                   {card.primary && <span className="text-xs text-emerald-400 font-medium">Principal</span>}
                 </div>
               ))}
-              <button className="w-full rounded-xl border border-dashed border-white/30 bg-white/5 p-3 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-all">
-                + Agregar método
-              </button>
             </div>
           </div>
 
-          {/* Promo card */}
-          <div className="rounded-2xl border border-pink-500/30 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-blue-500/20 backdrop-blur-xl p-6 shadow-xl">
-            <div className="mb-4 flex items-center gap-2">
-              <span className="text-2xl">🎉</span>
-              <h3 className="text-lg font-bold text-white">Oferta especial</h3>
-            </div>
-            <p className="mb-4 text-sm text-white/90">
-              ¡20% OFF en tu próximo viaje nocturno! Válido hasta medianoche.
-            </p>
+          {/* Enhanced activity feed */}
+          <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-bold text-white">Actividad reciente</h3>
             <div className="space-y-3">
-              <div className="rounded-xl border border-pink-400/30 bg-pink-500/20 p-3">
-                <p className="text-center font-mono text-lg font-bold text-pink-200">NIGHT20</p>
-              </div>
-              <button className="w-full rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 py-3 font-bold text-white hover:from-pink-600 hover:to-purple-600 transition-all">
-                Usar código
-              </button>
+              {[
+                { route: "Casa → TEC Cartago", time: "Hace 2h", price: "₡2,400", status: "completed" },
+                { route: "Centro → Universidad", time: "Ayer", price: "₡1,800", status: "completed" },
+                { route: "Aeropuerto → Hotel", time: "3 días", price: "₡4,200", status: "completed" }
+              ].map((trip, i) => (
+                <div key={i} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-3 hover:bg-white/10 transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                    <div>
+                      <p className="text-sm font-medium text-white">{trip.route}</p>
+                      <p className="text-xs text-white/60">{trip.time}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-emerald-400">{trip.price}</p>
+                    <button className="text-xs text-cyan-400 hover:underline">Repetir</button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
+      </main>
+
       {/* Modern bottom nav */}
       <nav className="sticky bottom-0 z-30 border-t border-white/10 bg-black/40 backdrop-blur-xl">
         <div className="mx-auto grid max-w-6xl grid-cols-4 px-4">
@@ -540,7 +808,6 @@ export default function Home() {
           📍
         </button>
       </div>
-      </main>
     </div>
   );
 }
