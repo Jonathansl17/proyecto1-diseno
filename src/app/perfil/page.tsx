@@ -27,6 +27,24 @@ interface UserProfile {
   };
 }
 
+interface Review {
+  id: string;
+  driverName: string;
+  rating: number;
+  comment: string;
+  date: string;
+  tripRoute: string;
+}
+
+interface TimelineEvent {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  icon: string;
+  type: 'milestone' | 'achievement' | 'bonus';
+}
+
 interface Achievement {
   id: string;
   title: string;
@@ -36,6 +54,7 @@ interface Achievement {
   unlocked: boolean;
   progress?: number;
   maxProgress?: number;
+  medal?: string;
 }
 
 interface MenuItem {
@@ -54,7 +73,7 @@ interface MenuCategory {
 
 export default function ProfileScreen() {
   const [isVisible, setIsVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'settings' | 'achievements'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'settings' | 'achievements' | 'reviews' | 'timeline'>('profile');
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showSecurity, setShowSecurity] = useState(false);
   const [showHelpCenter, setShowHelpCenter] = useState(false);
@@ -64,6 +83,9 @@ export default function ProfileScreen() {
   const [showPaymentMethods, setShowPaymentMethods] = useState(false);
   const [showSavedAddresses, setShowSavedAddresses] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showAvatarCustomizer, setShowAvatarCustomizer] = useState(false);
+  const [showAdvancedSecurity, setShowAdvancedSecurity] = useState(false);
+  const [showSendFeedback, setShowSendFeedback] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
@@ -91,6 +113,68 @@ export default function ProfileScreen() {
     }
   };
 
+  const userReviews: Review[] = [
+    {
+      id: '1',
+      driverName: 'Carlos Mendoza',
+      rating: 5,
+      comment: 'Muy puntual y educada. Excelente pasajera.',
+      date: '2025-09-20',
+      tripRoute: 'TEC Cartago → Mall San Pedro'
+    },
+    {
+      id: '2',
+      driverName: 'María González',
+      rating: 5,
+      comment: 'Super respetuosa y amable. La recomiendo totalmente.',
+      date: '2025-09-15',
+      tripRoute: 'Casa → Universidad UCR'
+    },
+    {
+      id: '3',
+      driverName: 'José Ramírez',
+      rating: 4,
+      comment: 'Buena comunicación y muy puntual para abordar.',
+      date: '2025-09-10',
+      tripRoute: 'Mall San Pedro → Casa'
+    }
+  ];
+
+  const timelineEvents: TimelineEvent[] = [
+    {
+      id: '1',
+      title: 'Bienvenida a la familia',
+      description: 'Te uniste a nuestra comunidad',
+      date: '2025-09-01',
+      icon: '🎉',
+      type: 'milestone'
+    },
+    {
+      id: '2',
+      title: 'Primer viaje completado',
+      description: 'Completaste tu primer viaje exitosamente',
+      date: '2025-09-02',
+      icon: '🚗',
+      type: 'milestone'
+    },
+    {
+      id: '3',
+      title: 'Bono de bienvenida',
+      description: 'Recibiste ₡2,000 de bono por registro',
+      date: '2025-09-02',
+      icon: '💰',
+      type: 'bonus'
+    },
+    {
+      id: '4',
+      title: 'Logro desbloqueado: Explorador',
+      description: 'Visitaste 10 destinos diferentes',
+      date: '2025-09-10',
+      icon: '🗺️',
+      type: 'achievement'
+    }
+  ];
+
   const achievements: Achievement[] = [
     {
       id: '1',
@@ -98,7 +182,8 @@ export default function ProfileScreen() {
       description: 'Completaste tu primer viaje',
       icon: '🚗',
       color: 'from-blue-500 to-cyan-500',
-      unlocked: true
+      unlocked: true,
+      medal: '🥉'
     },
     {
       id: '2',
@@ -106,7 +191,8 @@ export default function ProfileScreen() {
       description: 'Visitaste 10 destinos diferentes',
       icon: '🗺️',
       color: 'from-emerald-500 to-green-500',
-      unlocked: true
+      unlocked: true,
+      medal: '🥈'
     },
     {
       id: '3',
@@ -114,7 +200,8 @@ export default function ProfileScreen() {
       description: 'Ahorraste 50kg de CO₂',
       icon: '🌱',
       color: 'from-green-500 to-emerald-500',
-      unlocked: true
+      unlocked: true,
+      medal: '🥇'
     },
     {
       id: '4',
@@ -124,27 +211,8 @@ export default function ProfileScreen() {
       color: 'from-yellow-500 to-orange-500',
       unlocked: false,
       progress: 47,
-      maxProgress: 50
-    },
-    {
-      id: '5',
-      title: 'Noctámbulo',
-      description: 'Realizaste 20 viajes nocturnos',
-      icon: '🌙',
-      color: 'from-purple-500 to-violet-500',
-      unlocked: false,
-      progress: 12,
-      maxProgress: 20
-    },
-    {
-      id: '6',
-      title: 'Referidor Pro',
-      description: 'Invitaste a 5 amigos',
-      icon: '👥',
-      color: 'from-pink-500 to-rose-500',
-      unlocked: false,
-      progress: 2,
-      maxProgress: 5
+      maxProgress: 50,
+      medal: '🏆'
     }
   ];
 
@@ -153,18 +221,11 @@ export default function ProfileScreen() {
       category: 'Cuenta',
       items: [
         { icon: '👤', label: 'Información personal', action: () => setShowEditProfile(true) },
+        { icon: '🖼️', label: 'Personalizar avatar', action: () => setShowAvatarCustomizer(true) },
         { icon: '🔒', label: 'Seguridad y privacidad', action: () => setShowSecurity(true) },
+        { icon: '🛡️', label: 'Seguridad avanzada', action: () => setShowAdvancedSecurity(true) },
         { icon: '💳', label: 'Métodos de pago', action: () => setShowPaymentMethods(true) },
         { icon: '🏠', label: 'Direcciones guardadas', action: () => setShowSavedAddresses(true) }
-      ]
-    },
-    {
-      category: 'Preferencias',
-      items: [
-        { icon: '🔔', label: 'Notificaciones', action: () => setShowNotifications(true) },
-        { icon: '🌙', label: 'Modo oscuro', action: () => {}, toggle: userProfile.preferences.darkMode },
-        { icon: '🌍', label: 'Idioma', action: () => {}, value: 'Español' },
-        { icon: '🎯', label: 'Reserva automática', action: () => {}, toggle: userProfile.preferences.autoBook }
       ]
     },
     {
@@ -172,20 +233,19 @@ export default function ProfileScreen() {
       items: [
         { icon: '❓', label: 'Centro de ayuda', action: () => setShowHelpCenter(true) },
         { icon: '💬', label: 'Contactar soporte', action: () => setShowContactSupport(true) },
-        { icon: '📋', label: 'Términos y condiciones', action: () => setShowTerms(true) },
-        { icon: '🔐', label: 'Política de privacidad', action: () => setShowPrivacy(true) }
-      ]
-    },
-    {
-      category: 'Aplicación',
-      items: [
-        { icon: '⭐', label: 'Calificar app', action: () => window.open('https://play.google.com/store/apps/details?id=com.tuapp', '_blank') },
-        { icon: '📤', label: 'Compartir app', action: () => navigator.share({ title: 'Mi App de Transporte', text: '¡Descarga esta increíble app!', url: 'https://tuapp.com' }) },
-        { icon: 'ℹ️', label: 'Acerca de', action: () => {}, value: 'v2.1.0' },
+        { icon: '💡', label: 'Enviar sugerencias', action: () => setShowSendFeedback(true) },
         { icon: '🚪', label: 'Cerrar sesión', action: () => {}, danger: true }
       ]
     }
   ];
+
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <span key={i} className={i < rating ? "text-yellow-400" : "text-gray-600"}>
+        ⭐
+      </span>
+    ));
+  };
 
   return (
     <div className="relative flex min-h-screen flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
@@ -247,6 +307,12 @@ export default function ProfileScreen() {
                   <div className="absolute -bottom-2 -right-2 rounded-full bg-emerald-500 p-2 border-4 border-slate-900">
                     <span className="text-white text-lg">✓</span>
                   </div>
+                  <button 
+                    onClick={() => setShowAvatarCustomizer(true)}
+                    className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-white/20 hover:bg-white/30 rounded-full px-3 py-1 text-xs transition-all"
+                  >
+                    📸
+                  </button>
                 </div>
                 
                 <div className="flex-1 text-center md:text-left">
@@ -284,17 +350,19 @@ export default function ProfileScreen() {
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           )}
         >
-          <div className="flex gap-2 rounded-2xl border border-white/20 bg-white/5 p-2 backdrop-blur-xl">
+          <div className="flex gap-2 rounded-2xl border border-white/20 bg-white/5 p-2 backdrop-blur-xl overflow-x-auto">
             {[
               { id: 'profile', label: 'Perfil', icon: '👤' },
-              { id: 'settings', label: 'Configuración', icon: '⚙️' },
-              { id: 'achievements', label: 'Logros', icon: '🏆' }
+              { id: 'reviews', label: 'Reseñas', icon: '⭐' },
+              { id: 'achievements', label: 'Logros', icon: '🏆' },
+              { id: 'timeline', label: 'Progreso', icon: '📈' },
+              { id: 'settings', label: 'Configuración', icon: '⚙️' }
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={clsx(
-                  "flex-1 rounded-xl px-4 py-3 text-sm font-medium transition-all flex items-center justify-center gap-2",
+                  "flex-shrink-0 rounded-xl px-4 py-3 text-sm font-medium transition-all flex items-center justify-center gap-2",
                   activeTab === tab.id
                     ? "bg-gradient-to-r from-purple-500 to-violet-500 text-white shadow-lg"
                     : "text-white/70 hover:bg-white/10 hover:text-white"
@@ -317,20 +385,17 @@ export default function ProfileScreen() {
           {/* Profile Tab */}
           {activeTab === 'profile' && (
             <div className="space-y-6">
-              {/* Personal Information */}
               <div>
                 <h3 className="text-lg font-bold text-white mb-4">Información personal</h3>
                 <div className="space-y-3">
                   {[
                     { label: 'Nombre completo', value: userProfile.name, icon: '👤' },
                     { label: 'Correo electrónico', value: userProfile.email, icon: '📧' },
-                    { label: 'Teléfono', value: userProfile.phone, icon: '📱' },
-                    { label: 'Contacto de emergencia', value: `${userProfile.emergencyContact.name} - ${userProfile.emergencyContact.phone}`, icon: '🚨' }
+                    { label: 'Teléfono', value: userProfile.phone, icon: '📱' }
                   ].map((item, i) => (
                     <div
                       key={item.label}
                       className="rounded-xl border border-white/20 bg-white/5 backdrop-blur-xl p-4 hover:bg-white/10 transition-all"
-                      style={{ animationDelay: `${i * 50}ms` }}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -350,98 +415,107 @@ export default function ProfileScreen() {
                   ))}
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Favorite Locations */}
-              <div>
-                <h3 className="text-lg font-bold text-white mb-4">Lugares favoritos</h3>
-                <div className="space-y-3">
-                  {userProfile.favoriteLocations.map((location, i) => (
-                    <div
-                      key={location}
-                      className="rounded-xl border border-white/20 bg-white/5 backdrop-blur-xl p-4 hover:bg-white/10 transition-all"
-                      style={{ animationDelay: `${i * 50}ms` }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-lg bg-gradient-to-r from-emerald-500 to-green-500 p-2">
-                            📍
+          {/* Reviews Tab */}
+          {activeTab === 'reviews' && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold text-white mb-2">Reseñas recibidas</h3>
+                <p className="text-white/60">
+                  Lo que los conductores dicen sobre ti como pasajero
+                </p>
+                <div className="flex justify-center items-center gap-2 mt-4">
+                  <span className="text-3xl font-bold text-yellow-400">{userProfile.rating}</span>
+                  <div className="flex">
+                    {renderStars(Math.floor(userProfile.rating))}
+                  </div>
+                  <span className="text-white/60">({userReviews.length} reseñas)</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {userReviews.map((review, i) => (
+                  <div
+                    key={review.id}
+                    className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-6 hover:bg-white/10 transition-all"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-white font-bold">
+                        {review.driverName.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-bold text-white">{review.driverName}</h4>
+                          <div className="flex">
+                            {renderStars(review.rating)}
                           </div>
-                          <p className="text-white font-medium">{location}</p>
+                          <span className="text-xs text-white/60">{review.date}</span>
                         </div>
-                        <button className="rounded-lg border border-white/20 bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20 transition-all">
-                          Eliminar
-                        </button>
+                        <p className="text-white/80 mb-2">{review.comment}</p>
+                        <div className="flex items-center gap-2 text-sm text-white/60">
+                          <span className="bg-white/10 px-2 py-1 rounded-full">
+                            🗺️ {review.tripRoute}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Timeline Tab */}
+          {activeTab === 'timeline' && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold text-white mb-2">Tu progreso</h3>
+                <p className="text-white/60">
+                  Revive los momentos más importantes de tu experiencia
+                </p>
+              </div>
+
+              <div className="relative">
+                <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-500 to-transparent"></div>
+                
+                <div className="space-y-6">
+                  {timelineEvents.map((event, i) => (
+                    <div
+                      key={event.id}
+                      className="relative flex items-start gap-6"
+                    >
+                      <div className={clsx(
+                        "relative z-10 w-16 h-16 rounded-full flex items-center justify-center text-2xl border-4 border-slate-900",
+                        event.type === 'milestone' && "bg-gradient-to-br from-blue-500 to-cyan-500",
+                        event.type === 'achievement' && "bg-gradient-to-br from-yellow-500 to-orange-500",
+                        event.type === 'bonus' && "bg-gradient-to-br from-emerald-500 to-green-500"
+                      )}>
+                        {event.icon}
+                      </div>
+                      
+                      <div className="flex-1 rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-6 hover:bg-white/10 transition-all">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-bold text-white">{event.title}</h4>
+                          <span className={clsx(
+                            "text-xs px-2 py-1 rounded-full",
+                            event.type === 'milestone' && "bg-blue-500/20 text-blue-300",
+                            event.type === 'achievement' && "bg-yellow-500/20 text-yellow-300",
+                            event.type === 'bonus' && "bg-emerald-500/20 text-emerald-300"
+                          )}>
+                            {event.type === 'milestone' && 'Hito'}
+                            {event.type === 'achievement' && 'Logro'}
+                            {event.type === 'bonus' && 'Bono'}
+                          </span>
+                        </div>
+                        <p className="text-white/70 mb-2">{event.description}</p>
+                        <p className="text-xs text-white/50">{event.date}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Settings Tab */}
-          {activeTab === 'settings' && (
-            <div className="space-y-8">
-              {menuItems.map((category, i) => (
-                <div key={category.category}>
-                  <h3 className="text-lg font-bold text-white mb-4">{category.category}</h3>
-                  <div className="space-y-2">
-                    {category.items.map((item, j) => (
-                      <button
-                        key={item.label}
-                        onClick={item.action}
-                        className={clsx(
-                          "w-full rounded-xl border border-white/20 bg-white/5 backdrop-blur-xl p-4 hover:bg-white/10 transition-all text-left",
-                          item.danger && "border-red-500/50 bg-red-500/10 hover:bg-red-500/20"
-                        )}
-                        style={{ animationDelay: `${(i * 100) + (j * 50)}ms` }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={clsx(
-                              "rounded-lg p-2",
-                              item.danger 
-                                ? "bg-gradient-to-r from-red-500 to-pink-500" 
-                                : "bg-gradient-to-r from-purple-500 to-violet-500"
-                            )}>
-                              {item.icon}
-                            </div>
-                            <span className={clsx(
-                              "font-medium",
-                              item.danger ? "text-red-300" : "text-white"
-                            )}>
-                              {item.label}
-                            </span>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            {item.value && (
-                              <span className="text-sm text-white/60">{item.value}</span>
-                            )}
-                            {item.toggle !== undefined && (
-                              <div className={clsx(
-                                "w-12 h-6 rounded-full transition-all",
-                                item.toggle ? "bg-emerald-500" : "bg-white/20"
-                              )}>
-                                <div className={clsx(
-                                  "w-5 h-5 rounded-full bg-white transition-all transform mt-0.5",
-                                  item.toggle ? "translate-x-6" : "translate-x-0.5"
-                                )} />
-                              </div>
-                            )}
-                            <span className={clsx(
-                              "text-sm",
-                              item.danger ? "text-red-400" : "text-white/60"
-                            )}>
-                              →
-                            </span>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
             </div>
           )}
 
@@ -460,13 +534,18 @@ export default function ProfileScreen() {
                   <div
                     key={achievement.id}
                     className={clsx(
-                      "rounded-2xl border backdrop-blur-xl p-6 transition-all",
+                      "relative rounded-2xl border backdrop-blur-xl p-6 transition-all duration-500 hover:scale-105",
                       achievement.unlocked
                         ? `border-white/20 bg-gradient-to-br ${achievement.color} bg-opacity-20 hover:bg-opacity-30`
                         : "border-white/10 bg-white/5 hover:bg-white/10"
                     )}
-                    style={{ animationDelay: `${i * 100}ms` }}
                   >
+                    {achievement.unlocked && (
+                      <div className="absolute -top-2 -right-2 text-3xl animate-bounce">
+                        {achievement.medal}
+                      </div>
+                    )}
+                    
                     <div className="flex items-start gap-4">
                       <div className={clsx(
                         "rounded-xl p-3 text-2xl",
@@ -501,7 +580,7 @@ export default function ProfileScreen() {
                             </div>
                             <div className="w-full bg-white/10 rounded-full h-2">
                               <div 
-                                className={`h-2 rounded-full bg-gradient-to-r ${achievement.color} transition-all`}
+                                className={`h-2 rounded-full bg-gradient-to-r ${achievement.color} transition-all duration-1000`}
                                 style={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%` }}
                               />
                             </div>
@@ -514,52 +593,111 @@ export default function ProfileScreen() {
               </div>
             </div>
           )}
+
+          {/* Settings Tab */}
+          {activeTab === 'settings' && (
+            <div className="space-y-8">
+              {menuItems.map((category, i) => (
+                <div key={category.category}>
+                  <h3 className="text-lg font-bold text-white mb-4">{category.category}</h3>
+                  <div className="space-y-2">
+                    {category.items.map((item, j) => (
+                      <button
+                        key={item.label}
+                        onClick={item.action}
+                        className={clsx(
+                          "w-full rounded-xl border border-white/20 bg-white/5 backdrop-blur-xl p-4 hover:bg-white/10 transition-all text-left",
+                          item.danger && "border-red-500/50 bg-red-500/10 hover:bg-red-500/20"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={clsx(
+                              "rounded-lg p-2",
+                              item.danger 
+                                ? "bg-gradient-to-r from-red-500 to-pink-500" 
+                                : "bg-gradient-to-r from-purple-500 to-violet-500"
+                            )}>
+                              {item.icon}
+                            </div>
+                            <span className={clsx(
+                              "font-medium",
+                              item.danger ? "text-red-300" : "text-white"
+                            )}>
+                              {item.label}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            {item.value && (
+                              <span className="text-sm text-white/60">{item.value}</span>
+                            )}
+                            <span className={clsx(
+                              "text-sm",
+                              item.danger ? "text-red-400" : "text-white/60"
+                            )}>
+                              →
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </main>
 
-      {/* Edit Profile Modal */}
-      {showEditProfile && (
+      {/* Avatar Customizer Modal */}
+      {showAvatarCustomizer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Editar perfil</h3>
+                <h3 className="text-xl font-bold text-white">Personalizar Avatar</h3>
                 <button
-                  onClick={() => setShowEditProfile(false)}
+                  onClick={() => setShowAvatarCustomizer(false)}
                   className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 flex items-center justify-center text-white text-2xl font-black mx-auto mb-3">
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 flex items-center justify-center text-white text-3xl font-black mx-auto mb-4">
                     {userProfile.avatar}
                   </div>
-                  <button className="text-sm text-purple-400 hover:text-purple-300 transition-all">
-                    Cambiar foto
-                  </button>
+                  <h4 className="text-white font-medium mb-4">Elige tu estilo</h4>
                 </div>
 
-                {[
-                  { label: 'Nombre', value: userProfile.name, type: 'text' },
-                  { label: 'Email', value: userProfile.email, type: 'email' },
-                  { label: 'Teléfono', value: userProfile.phone, type: 'tel' }
-                ].map((field) => (
-                  <div key={field.label}>
-                    <label className="block text-sm text-white/70 mb-2">{field.label}</label>
-                    <input
-                      type={field.type}
-                      defaultValue={field.value}
-                      className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/50 backdrop-blur focus:border-purple-500 focus:outline-none"
-                    />
-                  </div>
-                ))}
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                  {['AM', '👤', '😊', '🤗', '😎', '🌟'].map((avatar, i) => (
+                    <button
+                      key={i}
+                      className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 flex items-center justify-center text-white text-xl font-black hover:scale-105 transition-all"
+                    >
+                      {avatar}
+                    </button>
+                  ))}
+                </div>
 
-                <div className="flex gap-3 mt-6">
+                <div className="border-t border-white/20 pt-4">
+                  <h5 className="text-white font-medium mb-3">O sube una foto</h5>
+                  <div className="border-2 border-dashed border-white/30 rounded-xl p-6 text-center hover:border-purple-500/50 transition-all">
+                    <div className="text-4xl mb-2">📸</div>
+                    <p className="text-sm text-white/60 mb-2">Arrastra una imagen aquí</p>
+                    <button className="text-xs text-purple-400 hover:text-purple-300">
+                      o haz clic para seleccionar
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
                   <button
-                    onClick={() => setShowEditProfile(false)}
+                    onClick={() => setShowAvatarCustomizer(false)}
                     className="flex-1 rounded-xl border border-white/30 bg-white/10 py-3 text-sm font-medium text-white hover:bg-white/20 transition-all"
                   >
                     Cancelar
@@ -574,143 +712,15 @@ export default function ProfileScreen() {
         </div>
       )}
 
-      {/* Security Modal */}
-      {showSecurity && (
+      {/* Send Feedback Modal */}
+      {showSendFeedback && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Seguridad</h3>
+                <h3 className="text-xl font-bold text-white">Enviar Sugerencias</h3>
                 <button
-                  onClick={() => setShowSecurity(false)}
-                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {[
-                  { label: 'Cambiar contraseña', icon: '🔐', action: () => {} },
-                  { label: 'Autenticación de dos factores', icon: '🛡️', action: () => {}, toggle: false },
-                  { label: 'Sesiones activas', icon: '📱', action: () => {}, value: '3 dispositivos' },
-                  { label: 'Eliminar cuenta', icon: '🗑️', action: () => {}, danger: true }
-                ].map((option) => (
-                  <button
-                    key={option.label}
-                    onClick={option.action}
-                    className={clsx(
-                      "w-full rounded-xl border backdrop-blur-xl p-4 hover:bg-white/10 transition-all text-left",
-                      option.danger 
-                        ? "border-red-500/50 bg-red-500/10 hover:bg-red-500/20"
-                        : "border-white/20 bg-white/5"
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={clsx(
-                          "rounded-lg p-2",
-                          option.danger 
-                            ? "bg-gradient-to-r from-red-500 to-pink-500"
-                            : "bg-gradient-to-r from-purple-500 to-violet-500"
-                        )}>
-                          {option.icon}
-                        </div>
-                        <span className={clsx(
-                          "font-medium",
-                          option.danger ? "text-red-300" : "text-white"
-                        )}>
-                          {option.label}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {option.value && (
-                          <span className="text-sm text-white/60">{option.value}</span>
-                        )}
-                        {option.toggle !== undefined && (
-                          <div className={clsx(
-                            "w-12 h-6 rounded-full transition-all",
-                            option.toggle ? "bg-emerald-500" : "bg-white/20"
-                          )}>
-                            <div className={clsx(
-                              "w-5 h-5 rounded-full bg-white transition-all transform mt-0.5",
-                              option.toggle ? "translate-x-6" : "translate-x-0.5"
-                            )} />
-                          </div>
-                        )}
-                        <span className={clsx(
-                          "text-sm",
-                          option.danger ? "text-red-400" : "text-white/60"
-                        )}>
-                          →
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Help Center Modal */}
-      {showHelpCenter && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Centro de Ayuda</h3>
-                <button
-                  onClick={() => setShowHelpCenter(false)}
-                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { title: '¿Cómo reservar un viaje?', icon: '🚗', description: 'Aprende a reservar tu primer viaje paso a paso' },
-                    { title: 'Problemas de pago', icon: '💳', description: 'Soluciona problemas con tus métodos de pago' },
-                    { title: 'Cancelar viaje', icon: '❌', description: 'Cómo cancelar o modificar tu viaje' },
-                    { title: 'Calificar conductor', icon: '⭐', description: 'Cómo calificar y dejar comentarios' },
-                    { title: 'Problemas técnicos', icon: '🔧', description: 'Soluciona problemas de la aplicación' },
-                    { title: 'Seguridad', icon: '🛡️', description: 'Consejos de seguridad para tus viajes' }
-                  ].map((item, i) => (
-                    <button
-                      key={i}
-                      className="rounded-xl border border-white/20 bg-white/5 p-4 hover:bg-white/10 transition-all text-left"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 p-2 text-xl">
-                          {item.icon}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-white mb-1">{item.title}</h4>
-                          <p className="text-sm text-white/60">{item.description}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Contact Support Modal */}
-      {showContactSupport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Contactar Soporte</h3>
-                <button
-                  onClick={() => setShowContactSupport(false)}
+                  onClick={() => setShowSendFeedback(false)}
                   className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
                 >
                   ✕
@@ -719,299 +729,127 @@ export default function ProfileScreen() {
 
               <div className="space-y-4">
                 <div className="text-center mb-6">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center text-white text-2xl mx-auto mb-3">
-                    💬
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-violet-500 flex items-center justify-center text-white text-2xl mx-auto mb-3">
+                    💡
                   </div>
-                  <p className="text-white/70">¿Necesitas ayuda? Contáctanos por cualquiera de estos medios:</p>
+                  <p className="text-white/70">Tu opinión es muy importante para nosotros</p>
                 </div>
 
-                <div className="space-y-3">
-                  {[
-                    { method: 'WhatsApp', contact: '+506 8888-0000', icon: '📱', action: () => window.open('https://wa.me/50688880000', '_blank') },
-                    { method: 'Email', contact: 'soporte@miapp.com', icon: '📧', action: () => window.open('mailto:soporte@miapp.com', '_blank') },
-                    { method: 'Teléfono', contact: '+506 2222-0000', icon: '📞', action: () => window.open('tel:+50622220000', '_blank') },
-                    { method: 'Chat en vivo', contact: 'Disponible 24/7', icon: '💬', action: () => {} }
-                  ].map((contact, i) => (
-                    <button
-                      key={i}
-                      onClick={contact.action}
-                      className="w-full rounded-xl border border-white/20 bg-white/5 p-4 hover:bg-white/10 transition-all text-left"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-lg bg-gradient-to-r from-purple-500 to-violet-500 p-2">
-                          {contact.icon}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-white">{contact.method}</h4>
-                          <p className="text-sm text-white/60">{contact.contact}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
+                <div>
+                  <label className="block text-sm text-white/70 mb-2">Categoría</label>
+                  <select className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white backdrop-blur focus:border-purple-500 focus:outline-none">
+                    <option value="">Selecciona una categoría</option>
+                    <option value="feature">Nueva funcionalidad</option>
+                    <option value="improvement">Mejora existente</option>
+                    <option value="bug">Reportar error</option>
+                    <option value="ui">Interfaz de usuario</option>
+                    <option value="other">Otro</option>
+                  </select>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Terms and Conditions Modal */}
-      {showTerms && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Términos y Condiciones</h3>
-                <button
-                  onClick={() => setShowTerms(false)}
-                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                <div className="space-y-4 text-sm text-white/80">
-                  <div>
-                    <h4 className="font-bold text-white mb-2">1. Aceptación de Términos</h4>
-                    <p>Al usar esta aplicación, aceptas estos términos y condiciones. Si no estás de acuerdo, no uses el servicio.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-bold text-white mb-2">2. Uso del Servicio</h4>
-                    <p>Nuestra plataforma conecta pasajeros con conductores. No somos responsables por la calidad del servicio de transporte.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-bold text-white mb-2">3. Pagos y Tarifas</h4>
-                    <p>Las tarifas se calculan automáticamente. Los pagos se procesan de forma segura a través de nuestros socios de pago.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-bold text-white mb-2">4. Cancelaciones</h4>
-                    <p>Puedes cancelar tu viaje hasta 5 minutos antes del inicio. Las cancelaciones tardías pueden incurrir en cargos.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-bold text-white mb-2">5. Responsabilidad</h4>
-                    <p>No somos responsables por daños, pérdidas o lesiones que puedan ocurrir durante el viaje.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-bold text-white mb-2">6. Modificaciones</h4>
-                    <p>Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios se notificarán a través de la app.</p>
-                  </div>
+                <div>
+                  <label className="block text-sm text-white/70 mb-2">Tu sugerencia</label>
+                  <textarea
+                    placeholder="Describe tu idea o sugerencia..."
+                    rows={4}
+                    className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/50 backdrop-blur focus:border-purple-500 focus:outline-none resize-none"
+                  ></textarea>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Privacy Policy Modal */}
-      {showPrivacy && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Política de Privacidad</h3>
-                <button
-                  onClick={() => setShowPrivacy(false)}
-                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-4 max-h-96 overflow-y-auto">
-                <div className="space-y-4 text-sm text-white/80">
-                  <div>
-                    <h4 className="font-bold text-white mb-2">1. Información que Recopilamos</h4>
-                    <p>Recopilamos información personal como nombre, email, teléfono y ubicación para brindar el servicio de transporte.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-bold text-white mb-2">2. Uso de la Información</h4>
-                    <p>Usamos tu información para conectar con conductores, procesar pagos y mejorar nuestros servicios.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-bold text-white mb-2">3. Compartir Información</h4>
-                    <p>No vendemos tu información personal. Solo la compartimos con conductores y socios necesarios para el servicio.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-bold text-white mb-2">4. Seguridad de Datos</h4>
-                    <p>Implementamos medidas de seguridad para proteger tu información personal contra acceso no autorizado.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-bold text-white mb-2">5. Tus Derechos</h4>
-                    <p>Tienes derecho a acceder, modificar o eliminar tu información personal en cualquier momento.</p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-bold text-white mb-2">6. Cookies</h4>
-                    <p>Usamos cookies para mejorar tu experiencia y analizar el uso de la aplicación.</p>
-                  </div>
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-500/10 border border-blue-500/30">
+                  <span className="text-blue-400">💡</span>
+                  <p className="text-xs text-blue-200">
+                    ¿Sabías que también puedes enviar capturas de pantalla? Adjúntalas para ayudarnos a entender mejor tu sugerencia.
+                  </p>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Payment Methods Modal */}
-      {showPaymentMethods && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Métodos de Pago</h3>
-                <button
-                  onClick={() => setShowPaymentMethods(false)}
-                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div className="space-y-3">
-                  {[
-                    { type: 'Tarjeta de Crédito', number: '**** **** **** 1234', icon: '💳', primary: true },
-                    { type: 'PayPal', number: 'ana.rodriguez@email.com', icon: '🅿️', primary: false },
-                    { type: 'Apple Pay', number: 'Configurado', icon: '🍎', primary: false }
-                  ].map((method, i) => (
-                    <div
-                      key={i}
-                      className={`rounded-xl border p-4 ${method.primary ? 'border-purple-500/50 bg-purple-500/10' : 'border-white/20 bg-white/5'}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-lg bg-gradient-to-r from-purple-500 to-violet-500 p-2">
-                            {method.icon}
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-white">{method.type}</h4>
-                            <p className="text-sm text-white/60">{method.number}</p>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          {method.primary && (
-                            <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">Principal</span>
-                          )}
-                          <button className="text-xs text-white/60 hover:text-white">Editar</button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <button className="w-full rounded-xl border border-dashed border-white/30 bg-white/5 py-4 text-white hover:bg-white/10 transition-all">
-                  + Agregar método de pago
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Saved Addresses Modal */}
-      {showSavedAddresses && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Direcciones Guardadas</h3>
-                <button
-                  onClick={() => setShowSavedAddresses(false)}
-                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div className="space-y-3">
-                  {[
-                    { name: 'Casa', address: 'San José, Costa Rica', icon: '🏠' },
-                    { name: 'Trabajo', address: 'TEC Cartago, Costa Rica', icon: '🏢' },
-                    { name: 'Universidad', address: 'Universidad de Costa Rica', icon: '🎓' }
-                  ].map((address, i) => (
-                    <div
-                      key={i}
-                      className="rounded-xl border border-white/20 bg-white/5 p-4 hover:bg-white/10 transition-all"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-lg bg-gradient-to-r from-emerald-500 to-green-500 p-2">
-                            {address.icon}
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-white">{address.name}</h4>
-                            <p className="text-sm text-white/60">{address.address}</p>
-                          </div>
-                        </div>
-                        <button className="text-xs text-white/60 hover:text-white">Editar</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <button className="w-full rounded-xl border border-dashed border-white/30 bg-white/5 py-4 text-white hover:bg-white/10 transition-all">
-                  + Agregar dirección
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Notifications Modal */}
-      {showNotifications && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">Configuración de Notificaciones</h3>
-                <button
-                  onClick={() => setShowNotifications(false)}
-                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {[
-                  { title: 'Viajes y reservas', description: 'Notificaciones sobre el estado de tus viajes', enabled: true },
-                  { title: 'Promociones', description: 'Ofertas especiales y descuentos', enabled: true },
-                  { title: 'Recordatorios', description: 'Recordatorios de viajes programados', enabled: false },
-                  { title: 'Actualizaciones de la app', description: 'Nuevas funciones y mejoras', enabled: true },
-                  { title: 'Notificaciones de seguridad', description: 'Alertas importantes de seguridad', enabled: true }
-                ].map((notification, i) => (
-                  <div
-                    key={i}
-                    className="rounded-xl border border-white/20 bg-white/5 p-4"
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => setShowSendFeedback(false)}
+                    className="flex-1 rounded-xl border border-white/30 bg-white/10 py-3 text-sm font-medium text-white hover:bg-white/20 transition-all"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-bold text-white mb-1">{notification.title}</h4>
-                        <p className="text-sm text-white/60">{notification.description}</p>
-                      </div>
-                      <div className={clsx(
-                        "w-12 h-6 rounded-full transition-all",
-                        notification.enabled ? "bg-emerald-500" : "bg-white/20"
-                      )}>
-                        <div className={clsx(
-                          "w-5 h-5 rounded-full bg-white transition-all transform mt-0.5",
-                          notification.enabled ? "translate-x-6" : "translate-x-0.5"
-                        )} />
-                      </div>
+                    Cancelar
+                  </button>
+                  <button className="flex-1 rounded-xl bg-gradient-to-r from-purple-500 to-violet-500 py-3 text-sm font-bold text-white hover:from-purple-600 hover:to-violet-600 transition-all">
+                    Enviar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Advanced Security Modal */}
+      {showAdvancedSecurity && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-3xl border border-white/20 bg-slate-900/95 backdrop-blur-xl shadow-2xl">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Seguridad Avanzada</h3>
+                <button
+                  onClick={() => setShowAdvancedSecurity(false)}
+                  className="rounded-xl border border-white/20 bg-white/10 p-2 text-white hover:bg-white/20 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 p-2">
+                      🔔
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white">Alertas de inicio de sesión</h4>
+                      <p className="text-sm text-white/60">Te notificaremos cuando detectemos un nuevo inicio de sesión</p>
                     </div>
                   </div>
-                ))}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-white/70">Activar alertas</span>
+                    <div className="w-12 h-6 rounded-full bg-blue-500">
+                      <div className="w-5 h-5 rounded-full bg-white transition-all transform mt-0.5 translate-x-6" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-white mb-3">Dispositivos activos</h4>
+                  <div className="space-y-3">
+                    {[
+                      { device: 'iPhone 14 Pro', location: 'San José, CR', time: 'Activo ahora', current: true },
+                      { device: 'MacBook Pro', location: 'Cartago, CR', time: 'Hace 2 horas', current: false }
+                    ].map((session, i) => (
+                      <div
+                        key={i}
+                        className={clsx(
+                          "rounded-xl border backdrop-blur-xl p-4",
+                          session.current 
+                            ? "border-emerald-500/50 bg-emerald-500/10" 
+                            : "border-white/20 bg-white/5"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="rounded-lg bg-gradient-to-r from-emerald-500 to-green-500 p-2">
+                              📱
+                            </div>
+                            <div>
+                              <h5 className="font-medium text-white">{session.device}</h5>
+                              <p className="text-xs text-white/60">{session.location} • {session.time}</p>
+                            </div>
+                          </div>
+                          {session.current && (
+                            <span className="text-xs text-emerald-400 px-3 py-1 rounded-lg border border-emerald-500/50 bg-emerald-500/10">
+                              Actual
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
