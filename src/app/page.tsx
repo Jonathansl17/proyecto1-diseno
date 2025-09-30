@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 
-// Simple helpers (no external libs)
 function clsx(...arr: (string | false | null | undefined)[]): string {
   return arr.filter(Boolean).join(" ");
 }
@@ -43,13 +42,31 @@ export default function EnhancedHomeScreen() {
   const [currentLocation, setCurrentLocation] = useState("Obteniendo ubicación...");
   const [currentPromo, setCurrentPromo] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [weather, setWeather] = useState({ temp: "26", condition: "☀️", location: "Cartago" });
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     setIsVisible(true);
+    
+    // Update time every minute
+    const timeInterval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    
     // Simulate getting current location
     setTimeout(() => {
       setCurrentLocation("Avenida Central, San José Centro");
     }, 1500);
+
+    // Simulate weather update
+    setTimeout(() => {
+      const conditions = [
+        { temp: "26", condition: "☀️", location: "Cartago" },
+        { temp: "23", condition: "⛅", location: "San José" },
+        { temp: "28", condition: "🌤️", location: "Alajuela" }
+      ];
+      setWeather(conditions[Math.floor(Math.random() * conditions.length)]);
+    }, 2000);
 
     // Animate map periodically
     const interval = setInterval(() => {
@@ -57,14 +74,15 @@ export default function EnhancedHomeScreen() {
       setTimeout(() => setMapAnimation(false), 2000);
     }, 8000);
 
-    // Rotate promotions
+    // Rotate promotions based on relevance
     const promoInterval = setInterval(() => {
-      setCurrentPromo(prev => (prev + 1) % promotions.length);
-    }, 5000);
+      setCurrentPromo(prev => (prev + 1) % getRelevantPromotions().length);
+    }, 6000);
 
     return () => {
       clearInterval(interval);
       clearInterval(promoInterval);
+      clearInterval(timeInterval);
     };
   }, []);
 
@@ -90,29 +108,95 @@ export default function EnhancedHomeScreen() {
     { id: '3', type: 'alert', message: 'Nueva zona de cobertura disponible en Cartago', time: '1d' }
   ];
 
-  const promotions = [
-    {
-      title: "¡Viajes nocturnos con descuento!",
-      desc: "20% OFF de 6PM a 6AM",
-      code: "NIGHT20",
-      gradient: "from-purple-500 via-pink-500 to-rose-500",
-      icon: "🌙"
-    },
-    {
-      title: "¡Estudiantes viajan más barato!",
-      desc: "15% OFF mostrando carné estudiantil",
-      code: "STUDENT15",
-      gradient: "from-blue-500 via-cyan-500 to-teal-500",
-      icon: "🎓"
-    },
-    {
-      title: "¡EcoRide ahorra el planeta!",
-      desc: "Viajes eléctricos con 10% descuento",
-      code: "ECO10",
-      gradient: "from-green-500 via-emerald-500 to-lime-500",
-      icon: "🌱"
+  // User data simulation
+  const user = {
+    name: "querido usuario",
+    avatar: "RN",
+    recentDestinations: ["TEC Cartago", "UCR San Pedro", "Centro San José"],
+    favoriteTime: "morning"
+  };
+
+  // Dynamic greeting based on time
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return "Buenos días";
+    if (hour < 18) return "Buenas tardes";
+    return "Buenas noches";
+  };
+
+  // AI-powered recommendations based on time and history
+  const getSmartRecommendations = () => {
+    const hour = currentTime.getHours();
+    const day = currentTime.getDay();
+    
+    if (hour >= 6 && hour < 12) {
+      if (day >= 1 && day <= 5) {
+        return [
+          { text: "¿Vas al TEC?", dest: "TEC Cartago", reason: "Usualmente vas los lunes en la mañana", confidence: 0.9 },
+          { text: "¿Universidad hoy?", dest: "UCR San Pedro", reason: "Es tu horario habitual", confidence: 0.8 }
+        ];
+      }
     }
-  ];
+    
+    if (hour >= 12 && hour < 18) {
+      return [
+        { text: "¿Almuerzo en el centro?", dest: "Centro San José", reason: "Sueles ir a esta hora", confidence: 0.7 },
+        { text: "¿Regreso a casa?", dest: "Casa", reason: "Hora típica de regreso", confidence: 0.6 }
+      ];
+    }
+    
+    if (hour >= 18) {
+      return [
+        { text: "¿Regreso a casa?", dest: "Casa", reason: "Fin del día laboral", confidence: 0.8 },
+        { text: "¿Cena en el mall?", dest: "Mall San Pedro", reason: "Actividad nocturna común", confidence: 0.5 }
+      ];
+    }
+    
+    return [];
+  };
+
+  // Smart promotions based on user behavior and time
+  const getRelevantPromotions = () => {
+    const hour = currentTime.getHours();
+    const allPromotions = [
+      {
+        title: "¡Viajes nocturnos con descuento!",
+        desc: "20% OFF de 6PM a 6AM",
+        code: "NIGHT20",
+        gradient: "from-purple-500 via-pink-500 to-rose-500",
+        icon: "🌙",
+        relevance: hour >= 18 || hour < 6 ? 1.0 : 0.3
+      },
+      {
+        title: "¡Estudiantes viajan más barato!",
+        desc: "15% OFF mostrando carné estudiantil",
+        code: "STUDENT15",
+        gradient: "from-blue-500 via-cyan-500 to-teal-500",
+        icon: "🎓",
+        relevance: user.recentDestinations.some(d => d.includes("TEC") || d.includes("UCR")) ? 0.9 : 0.4
+      },
+      {
+        title: "¡EcoRide ahorra el planeta!",
+        desc: "Viajes eléctricos con 10% descuento",
+        code: "ECO10",
+        gradient: "from-green-500 via-emerald-500 to-lime-500",
+        icon: "🌱",
+        relevance: 0.6
+      },
+      {
+        title: "¡Viajes matutinos eficientes!",
+        desc: "10% OFF antes de las 10 AM",
+        code: "EARLY10",
+        gradient: "from-orange-500 via-yellow-500 to-amber-500",
+        icon: "🌅",
+        relevance: hour < 10 ? 0.8 : 0.2
+      }
+    ];
+    
+    return allPromotions
+      .sort((a, b) => b.relevance - a.relevance)
+      .slice(0, 3);
+  };
 
   const popularDestinations: PopularDestination[] = [
     { name: "TEC Cartago", distance: "12 km", price: "₡2,800", icon: "🎓", popular: true },
@@ -136,7 +220,7 @@ export default function EnhancedHomeScreen() {
       desc: "Ver viajes anteriores",
       icon: "📋",
       gradient: "from-blue-500 to-purple-500",
-      action: () => window.location.href = "/admin"
+      action: () => window.location.href = "/trips"
     },
     {
       name: "Mi Wallet",
@@ -150,7 +234,7 @@ export default function EnhancedHomeScreen() {
       desc: "Configurar cuenta",
       icon: "👤",
       gradient: "from-orange-500 to-red-500",
-      action: () => window.location.href = "/perfil"
+      action: () => window.location.href = "/profile"
     }
   ];
 
@@ -158,7 +242,6 @@ export default function EnhancedHomeScreen() {
     if (!navigator.geolocation) return alert("Geolocalización no soportada");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const { latitude, longitude } = pos.coords;
         setPickup(currentLocation);
       },
       () => alert("No se pudo obtener tu ubicación")
@@ -225,7 +308,7 @@ export default function EnhancedHomeScreen() {
         <div className="absolute top-1/3 right-0 w-72 h-72 bg-emerald-500/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
-      {/* Enhanced glassmorphic top bar with notifications */}
+      {/* Enhanced glassmorphic top bar with personalized greeting and weather */}
       <header
         className={clsx(
           "sticky top-0 z-30 border-b border-white/10 bg-black/20 backdrop-blur-xl",
@@ -235,41 +318,59 @@ export default function EnhancedHomeScreen() {
       >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
           <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="rounded-2xl border border-white/20 bg-gradient-to-br from-white/20 to-transparent p-3 shadow-2xl backdrop-blur">
+            <div className="relative group">
+              <div className="rounded-2xl border border-white/20 bg-gradient-to-br from-white/20 to-transparent p-3 shadow-2xl backdrop-blur group-hover:scale-105 transition-all">
                 <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold">R</div>
               </div>
               <div className="absolute -right-1 -top-1 h-3 w-3 bg-emerald-400 rounded-full animate-ping"></div>
               <div className="absolute -right-1 -top-1 h-3 w-3 bg-emerald-500 rounded-full"></div>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wider text-cyan-400 font-semibold">Costa Rica</p>
-              <h1 className="text-xl font-black bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">RideNow</h1>
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-sm hover:scale-105 transition-transform cursor-pointer">
+                  {user.avatar}
+                </div>
+                <p className="text-lg font-bold bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">
+                  {getGreeting()}, {user.name} 👋
+                </p>
+              </div>
+              <p className="text-xs uppercase tracking-wider text-cyan-400 font-semibold">RideNow Costa Rica</p>
             </div>
           </div>
+          
           <div className="flex items-center gap-3">
+            {/* Weather widget */}
+            <div className="hidden sm:flex items-center gap-3 rounded-2xl border border-white/20 bg-white/10 backdrop-blur px-4 py-2 hover:bg-white/20 transition-all cursor-pointer group">
+              <div className="text-2xl group-hover:scale-110 transition-transform">{weather.condition}</div>
+              <div>
+                <p className="text-lg font-bold text-white">{weather.temp}°C</p>
+                <p className="text-xs text-white/70">{weather.location}</p>
+              </div>
+            </div>
+            
             <div className="hidden sm:flex items-center gap-2 text-sm">
               <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
               <span className="text-emerald-300">En línea</span>
             </div>
+            
             <div className="relative">
               <button 
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="relative rounded-xl border border-white/20 bg-white/10 p-2 text-white backdrop-blur hover:bg-white/20 transition-all"
+                className="relative rounded-xl border border-white/20 bg-white/10 p-2 text-white backdrop-blur hover:bg-white/20 hover:scale-105 transition-all"
               >
                 🔔
                 {notifications.length > 0 && (
-                  <div className="absolute -right-1 -top-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
+                  <div className="absolute -right-1 -top-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold animate-pulse">
                     {notifications.length}
                   </div>
                 )}
               </button>
               {showNotifications && (
-                <div className="absolute right-0 top-12 w-80 rounded-2xl border border-white/20 bg-black/90 backdrop-blur-xl p-4 shadow-2xl z-50">
+                <div className="absolute right-0 top-12 w-80 rounded-2xl border border-white/20 bg-black/90 backdrop-blur-xl p-4 shadow-2xl z-50 animate-in slide-in-from-top-2 duration-200">
                   <h3 className="text-sm font-bold text-white mb-3">Notificaciones</h3>
                   <div className="space-y-2">
                     {notifications.map(notif => (
-                      <div key={notif.id} className="rounded-lg border border-white/10 bg-white/5 p-3 hover:bg-white/10 transition-all">
+                      <div key={notif.id} className="rounded-lg border border-white/10 bg-white/5 p-3 hover:bg-white/10 transition-all cursor-pointer transform hover:scale-105">
                         <p className="text-sm text-white">{notif.message}</p>
                         <p className="text-xs text-white/60">Hace {notif.time}</p>
                       </div>
@@ -278,42 +379,75 @@ export default function EnhancedHomeScreen() {
                 </div>
               )}
             </div>
-            <button className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur hover:bg-white/20 transition-all">
-              24/7 Soporte
-            </button>
           </div>
         </div>
       </header>
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-8 px-4 py-8">
-        {/* Dynamic promotional banner */}
+        {/* Dynamic promotional banner with smart recommendations */}
         <section
           className={clsx(
+            "space-y-4",
             "transition-all duration-1000 delay-100",
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           )}
         >
-          <div className={`rounded-3xl border border-white/20 bg-gradient-to-r ${promotions[currentPromo].gradient} p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden`}>
+          {/* AI Recommendations */}
+          {getSmartRecommendations().length > 0 && (
+            <div className="rounded-3xl border border-cyan-500/30 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden group hover:scale-105 transition-all duration-300">
+              <div className="absolute inset-0 bg-black/10"></div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center text-white animate-pulse">
+                    🤖
+                  </div>
+                  <h3 className="text-lg font-bold text-white">Sugerencia inteligente</h3>
+                </div>
+                <div className="space-y-2">
+                  {getSmartRecommendations().slice(0, 2).map((rec, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setDropoff(rec.dest);
+                        document.getElementById('trip-form')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="w-full text-left rounded-xl bg-white/10 p-3 hover:bg-white/20 transition-all hover:scale-105 group"
+                    >
+                      <p className="text-white font-medium">{rec.text}</p>
+                      <p className="text-xs text-white/70">{rec.reason} • {Math.round(rec.confidence * 100)}% confianza</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Smart promotions */}
+          <div className={`rounded-3xl border border-white/20 bg-gradient-to-r ${getRelevantPromotions()[currentPromo].gradient} p-6 shadow-2xl backdrop-blur-xl relative overflow-hidden group hover:scale-105 transition-all duration-300`}>
             <div className="absolute inset-0 bg-black/20"></div>
             <div className="relative z-10 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="text-4xl">{promotions[currentPromo].icon}</div>
+                <div className="text-4xl group-hover:scale-110 transition-transform">{getRelevantPromotions()[currentPromo].icon}</div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">{promotions[currentPromo].title}</h2>
-                  <p className="text-white/90">{promotions[currentPromo].desc}</p>
+                  <h2 className="text-xl font-bold text-white">{getRelevantPromotions()[currentPromo].title}</h2>
+                  <p className="text-white/90">{getRelevantPromotions()[currentPromo].desc}</p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                    <span className="text-xs text-emerald-300">Recomendado para ti</span>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="rounded-xl bg-white/20 px-4 py-2 font-mono text-sm font-bold text-white">
-                  {promotions[currentPromo].code}
+                <div className="rounded-xl bg-white/20 px-4 py-2 font-mono text-sm font-bold text-white group-hover:bg-white/30 transition-all">
+                  {getRelevantPromotions()[currentPromo].code}
                 </div>
-                <button className="rounded-xl bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition-all">
+                <button className="rounded-xl bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition-all hover:scale-105">
                   Usar ahora
                 </button>
               </div>
             </div>
             <div className="absolute bottom-2 right-2 flex gap-2">
-              {promotions.map((_, i) => (
+              {getRelevantPromotions().map((_, i) => (
                 <div key={i} className={`w-2 h-2 rounded-full transition-all ${i === currentPromo ? 'bg-white' : 'bg-white/40'}`} />
               ))}
             </div>
@@ -348,21 +482,25 @@ export default function EnhancedHomeScreen() {
             </button>
           </div>
 
-          {/* Quick actions grid */}
+          {/* Quick actions grid with enhanced animations */}
           <div className="lg:col-span-2 grid grid-cols-2 gap-4">
             {quickActions.map((action, i) => (
               <button
                 key={action.name}
                 onClick={action.action}
-                className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-6 shadow-xl hover:bg-white/10 hover:scale-105 transition-all duration-300"
-                style={{ animationDelay: `${i * 100}ms` }}
+                className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-6 shadow-xl hover:bg-white/10 hover:scale-105 hover:rotate-1 transition-all duration-500 hover:shadow-2xl"
+                style={{ 
+                  animationDelay: `${i * 150}ms`,
+                  transformOrigin: 'center'
+                }}
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-20 group-hover:opacity-30 transition-opacity`}></div>
-                <div className="relative z-10">
-                  <div className="text-3xl mb-3">{action.icon}</div>
-                  <h3 className="font-bold text-white mb-1">{action.name}</h3>
-                  <p className="text-sm text-white/70">{action.desc}</p>
+                <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-20 group-hover:opacity-40 transition-all duration-500`}></div>
+                <div className="relative z-10 transform group-hover:scale-110 transition-transform duration-300">
+                  <div className="text-3xl mb-3 group-hover:animate-bounce">{action.icon}</div>
+                  <h3 className="font-bold text-white mb-1 group-hover:text-cyan-200 transition-colors">{action.name}</h3>
+                  <p className="text-sm text-white/70 group-hover:text-white/90 transition-colors">{action.desc}</p>
                 </div>
+                <div className="absolute inset-0 rounded-2xl ring-0 group-hover:ring-2 group-hover:ring-white/30 transition-all duration-300"></div>
               </button>
             ))}
           </div>
@@ -381,7 +519,7 @@ export default function EnhancedHomeScreen() {
             </h2>
             <button className="text-sm text-cyan-400 hover:underline">Ver todos</button>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4">
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
             {popularDestinations.map((dest, i) => (
               <button
                 key={dest.name}
@@ -389,21 +527,25 @@ export default function EnhancedHomeScreen() {
                   setDropoff(dest.name);
                   document.getElementById('trip-form')?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="group relative flex-none w-48 overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-4 shadow-xl hover:bg-white/10 hover:scale-105 transition-all duration-300"
-                style={{ animationDelay: `${i * 150}ms` }}
+                className="group relative flex-none w-48 overflow-hidden rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-4 shadow-xl hover:bg-white/10 hover:scale-105 hover:-rotate-1 transition-all duration-500 hover:shadow-2xl hover:border-cyan-400/50"
+                style={{ 
+                  animationDelay: `${i * 150}ms`,
+                  transformOrigin: 'center'
+                }}
               >
                 {dest.popular && (
-                  <div className="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full px-2 py-1 text-xs font-bold text-white">
+                  <div className="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full px-2 py-1 text-xs font-bold text-white animate-pulse">
                     Popular
                   </div>
                 )}
-                <div className="text-3xl mb-3">{dest.icon}</div>
-                <h3 className="font-bold text-white mb-1">{dest.name}</h3>
-                <p className="text-sm text-white/70 mb-2">{dest.distance}</p>
+                <div className="text-3xl mb-3 group-hover:scale-110 group-hover:animate-bounce transition-all duration-300">{dest.icon}</div>
+                <h3 className="font-bold text-white mb-1 group-hover:text-cyan-200 transition-colors">{dest.name}</h3>
+                <p className="text-sm text-white/70 mb-2 group-hover:text-white/90 transition-colors">{dest.distance}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-emerald-400">{dest.price}</span>
-                  <span className="text-cyan-400 group-hover:translate-x-1 transition-transform">→</span>
+                  <span className="text-lg font-bold text-emerald-400 group-hover:text-emerald-300 transition-colors">{dest.price}</span>
+                  <span className="text-cyan-400 group-hover:translate-x-2 group-hover:scale-125 transition-all duration-300">→</span>
                 </div>
+                <div className="absolute inset-0 rounded-2xl ring-0 group-hover:ring-2 group-hover:ring-cyan-400/30 transition-all duration-300"></div>
               </button>
             ))}
           </div>
@@ -438,9 +580,6 @@ export default function EnhancedHomeScreen() {
 
               <div className="space-y-4">
                 <div className="group relative">
-                  <div className="absolute left-4 top-4 z-10">
-                    <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
-                  </div>
                   <input
                     value={pickup}
                     onChange={(e) => setPickup(e.target.value)}
@@ -486,53 +625,58 @@ export default function EnhancedHomeScreen() {
               </div>
             </div>
 
-            {/* Enhanced ride options */}
+            {/* Enhanced ride options with smooth animations */}
             <div className="grid grid-cols-2 gap-4">
               {rideOptions.map((opt, i) => (
                 <button
                   key={opt.id}
                   onClick={() => setRideType(opt.id)}
                   className={clsx(
-                    "group relative overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 hover:scale-105",
+                    "group relative overflow-hidden rounded-2xl border p-4 text-left transition-all duration-500 hover:scale-105 hover:rotate-1",
                     rideType === opt.id
-                      ? "border-white/40 bg-white/20 shadow-2xl ring-2 ring-white/30"
-                      : "border-white/20 bg-white/5 hover:bg-white/10"
+                      ? "border-white/40 bg-white/20 shadow-2xl ring-2 ring-white/30 scale-105"
+                      : "border-white/20 bg-white/5 hover:bg-white/10 hover:shadow-2xl"
                   )}
-                  style={{ animationDelay: `${i * 100}ms` }}
+                  style={{ 
+                    animationDelay: `${i * 150}ms`,
+                    transformOrigin: 'center'
+                  }}
                 >
                   {rideType === opt.id && (
-                    <div className={`absolute inset-0 bg-gradient-to-br ${opt.bgGradient} opacity-20`}></div>
+                    <div className={`absolute inset-0 bg-gradient-to-br ${opt.bgGradient} opacity-30 animate-pulse`}></div>
                   )}
                   
-                  <div className="relative z-10">
+                  <div className="relative z-10 transform group-hover:scale-110 transition-transform duration-300">
                     <div className="mb-3 flex items-center gap-3">
-                      <div className="text-2xl">{opt.icon}</div>
+                      <div className="text-2xl group-hover:animate-bounce">{opt.icon}</div>
                       <div>
-                        <p className={`font-bold ${rideType === opt.id ? 'text-white' : 'text-white/90'}`}>{opt.name}</p>
-                        <p className="text-xs text-white/60">{opt.desc}</p>
+                        <p className={`font-bold transition-colors ${rideType === opt.id ? 'text-white' : 'text-white/90 group-hover:text-cyan-200'}`}>{opt.name}</p>
+                        <p className="text-xs text-white/60 group-hover:text-white/80 transition-colors">{opt.desc}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-white/70">{eta}</span>
-                      <span className={`rounded-lg bg-gradient-to-r ${opt.bgGradient} px-3 py-1 font-bold text-white shadow-lg`}>
+                      <span className="text-white/70 group-hover:text-white/90 transition-colors">{eta}</span>
+                      <span className={`rounded-lg bg-gradient-to-r ${opt.bgGradient} px-3 py-1 font-bold text-white shadow-lg group-hover:shadow-xl transition-shadow`}>
                         {fare}
                       </span>
                     </div>
                   </div>
+                  <div className="absolute inset-0 rounded-2xl ring-0 group-hover:ring-2 group-hover:ring-cyan-400/30 transition-all duration-300"></div>
                 </button>
               ))}
             </div>
 
-            {/* Enhanced CTA button */}
+            {/* Enhanced CTA button with premium animations */}
             <div className="relative">
               <button
                 onClick={requestRide}
                 className={clsx(
-                  "group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500 p-6 font-bold text-white shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/25",
-                  looking && "animate-pulse"
+                  "group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500 p-6 font-bold text-white shadow-2xl transition-all duration-500 hover:scale-105 hover:shadow-cyan-500/25 hover:-translate-y-1",
+                  looking && "animate-pulse scale-105"
                 )}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 opacity-0 transition-opacity group-hover:opacity-100"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-20 animate-pulse"></div>
                 <div className="relative z-10 flex items-center justify-center gap-3">
                   {looking ? (
                     <>
@@ -541,12 +685,13 @@ export default function EnhancedHomeScreen() {
                     </>
                   ) : (
                     <>
-                      <span className="text-xl">🚀</span>
-                      <span className="text-lg">Solicitar RideNow</span>
-                      <div className="ml-2 text-sm opacity-80">{eta} • {fare}</div>
+                      <span className="text-xl group-hover:animate-bounce">🚀</span>
+                      <span className="text-lg group-hover:text-cyan-200 transition-colors">Solicitar RideNow</span>
+                      <div className="ml-2 text-sm opacity-80 group-hover:opacity-100 transition-opacity">{eta} • {fare}</div>
                     </>
                   )}
                 </div>
+                <div className="absolute inset-0 rounded-2xl ring-0 group-hover:ring-4 group-hover:ring-cyan-400/20 transition-all duration-500"></div>
               </button>
             </div>
           </div>
@@ -670,100 +815,6 @@ export default function EnhancedHomeScreen() {
             </div>
           </div>
         </section>
-
-        {/* Enhanced bottom section with scheduled trips */}
-        <section
-          className={clsx(
-            "grid grid-cols-1 md:grid-cols-3 gap-6",
-            "transition-all duration-1000 delay-500",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          )}
-        >
-          {/* Scheduled trips */}
-          <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-500/20 to-pink-500/20 backdrop-blur-xl p-6 shadow-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center text-white">
-                ⏰
-              </div>
-              <h3 className="text-lg font-bold text-white">Próximos viajes</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                <p className="text-sm font-medium text-white">Aeropuerto SJO</p>
-                <p className="text-xs text-white/60">Mañana 06:00</p>
-                <div className="mt-2 flex justify-between items-center">
-                  <span className="text-sm text-purple-300">₡4,800</span>
-                  <button className="text-xs text-cyan-400 hover:underline">Modificar</button>
-                </div>
-              </div>
-              <button className="w-full rounded-xl border border-dashed border-white/30 bg-white/5 p-3 text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-all">
-                + Programar viaje
-              </button>
-            </div>
-          </div>
-
-          {/* Enhanced payment methods */}
-          <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">Métodos de pago</h3>
-              <button className="text-sm text-cyan-400 hover:underline">Gestionar</button>
-            </div>
-            <div className="space-y-3">
-              {[
-                { type: "Visa", last4: "4242", primary: true, balance: "₡8,450" },
-                { type: "Mastercard", last4: "8888", primary: false, balance: null },
-                { type: "Efectivo", last4: "", primary: false, balance: null }
-              ].map((card, i) => (
-                <div key={i} className={clsx(
-                  "flex items-center justify-between rounded-xl border p-3 transition-all",
-                  card.primary 
-                    ? "border-emerald-500/50 bg-emerald-500/20" 
-                    : "border-white/10 bg-white/5 hover:bg-white/10"
-                )}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
-                      {card.type === "Efectivo" ? "💵" : "💳"}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-white">{card.type}</p>
-                      <div className="flex items-center gap-2">
-                        {card.last4 && <p className="text-xs text-white/60">•••• {card.last4}</p>}
-                        {card.balance && <p className="text-xs text-emerald-400">{card.balance}</p>}
-                      </div>
-                    </div>
-                  </div>
-                  {card.primary && <span className="text-xs text-emerald-400 font-medium">Principal</span>}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Enhanced activity feed */}
-          <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-xl p-6 shadow-xl">
-            <h3 className="mb-4 text-lg font-bold text-white">Actividad reciente</h3>
-            <div className="space-y-3">
-              {[
-                { route: "Casa → TEC Cartago", time: "Hace 2h", price: "₡2,400", status: "completed" },
-                { route: "Centro → Universidad", time: "Ayer", price: "₡1,800", status: "completed" },
-                { route: "Aeropuerto → Hotel", time: "3 días", price: "₡4,200", status: "completed" }
-              ].map((trip, i) => (
-                <div key={i} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-3 hover:bg-white/10 transition-all">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                    <div>
-                      <p className="text-sm font-medium text-white">{trip.route}</p>
-                      <p className="text-xs text-white/60">{trip.time}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-emerald-400">{trip.price}</p>
-                    <button className="text-xs text-cyan-400 hover:underline">Repetir</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* Modern bottom nav */}
@@ -771,7 +822,7 @@ export default function EnhancedHomeScreen() {
         <div className="mx-auto grid max-w-6xl grid-cols-4 px-4">
           {[
             { name: "Inicio", icon: "🏠", active: true, href: "/" },
-            { name: "Viajes", icon: "🧭", active: false, href: "/admin" },
+            { name: "Viajes", icon: "🧭", active: false, href: "/trips" },
             { name: "Wallet", icon: "💳", active: false, href: "/wallet" },
             { name: "Perfil", icon: "👤", active: false, href: "/perfil" },
           ].map((tab) => (
@@ -810,4 +861,4 @@ export default function EnhancedHomeScreen() {
       </div>
     </div>
   );
-}
+}  
