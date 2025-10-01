@@ -220,7 +220,7 @@ export default function EnhancedHomeScreen() {
       desc: "Ver viajes anteriores",
       icon: "📋",
       gradient: "from-blue-500 to-purple-500",
-      action: () => window.location.href = "/trips"
+      action: () => window.location.href = "/admin"
     },
     {
       name: "Mi Wallet",
@@ -822,7 +822,7 @@ export default function EnhancedHomeScreen() {
         <div className="mx-auto grid max-w-6xl grid-cols-4 px-4">
           {[
             { name: "Inicio", icon: "🏠", active: true, href: "/" },
-            { name: "Viajes", icon: "🧭", active: false, href: "/trips" },
+            { name: "Viajes", icon: "🧭", active: false, href: "/admin" },
             { name: "Wallet", icon: "💳", active: false, href: "/wallet" },
             { name: "Perfil", icon: "👤", active: false, href: "/perfil" },
           ].map((tab) => (
