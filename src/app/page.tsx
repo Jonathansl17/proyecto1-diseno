@@ -234,7 +234,7 @@ export default function EnhancedHomeScreen() {
       desc: "Configurar cuenta",
       icon: "👤",
       gradient: "from-orange-500 to-red-500",
-      action: () => window.location.href = "/profile"
+      action: () => window.location.href = "/perfil"
     }
   ];
 
