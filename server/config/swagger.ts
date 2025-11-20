@@ -4,42 +4,46 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Rides API - Sistema de Gestión de Viajes',
+      title: 'Proyecto1-Diseño API - Sistema de Gestión de Viajes',
       version: '1.0.0',
       description: `
-# API REST para Sistema de Gestión de Viajes Compartidos
+# Proyecto1-Diseño - API REST para Sistema de Gestión de Viajes Compartidos
 
-## Descripción
-API completa para gestión de viajes, usuarios, conductores, pagos y analíticas.
-Implementa autenticación JWT, patrón Repository y está lista para despliegue en Azure.
+## Descripción del Proyecto
+API REST completa desarrollada para el curso de Diseño de Software.
+Sistema de gestión de viajes compartidos con autenticación JWT, patrón Repository 
+y arquitectura lista para despliegue en Azure.
 
-## Características
-- 🔐 **Autenticación JWT** con tokens seguros
-- 📊 **32 Endpoints** organizados en 8 módulos
+## Características Técnicas
+- 🔐 **Autenticación JWT** con tokens seguros y bcrypt
+- 📊 **32 Endpoints RESTful** organizados en 8 módulos
 - 🏗️ **Patrón Repository** para abstracción de datos
-- ✅ **Validación** de datos en todos los endpoints
+- ✅ **Validación** de datos con express-validator
 - 🛡️ **Manejo de errores** centralizado
-- 📈 **Analytics** y reportes
+- 📈 **Analytics** y reportes en tiempo real
+- 🎨 **Frontend Next.js 15** con TypeScript y Tailwind CSS
 
-## Módulos
-- **Authentication**: Registro y login de usuarios
+## Módulos del Sistema
+- **Authentication**: Registro y login de usuarios con JWT
 - **Trips**: Gestión completa de viajes (CRUD)
-- **Users**: Administración de usuarios
-- **Drivers**: Gestión de conductores
-- **Ratings**: Sistema de calificaciones
-- **Payments**: Procesamiento de pagos
-- **Analytics**: Estadísticas y métricas
-- **Vehicles**: Gestión de vehículos
+- **Users**: Administración de usuarios y perfiles
+- **Drivers**: Gestión de conductores y vehículos
+- **Ratings**: Sistema de calificaciones bidireccional
+- **Payments**: Procesamiento y registro de pagos
+- **Analytics**: Estadísticas y métricas del sistema
+- **Vehicles**: Gestión de vehículos asignados
 
-## Cómo usar
+## Cómo usar esta API
 1. Registra un usuario con \`POST /api/auth/register\`
-2. Obtén tu token con \`POST /api/auth/login\`
-3. Haz click en **Authorize** 🔒 y pega tu token
+2. Obtén tu token JWT con \`POST /api/auth/login\`
+3. Haz click en **Authorize** 🔒 (arriba a la derecha) y pega tu token
 4. ¡Prueba cualquier endpoint protegido!
+
+**Nota**: El token expira en 7 días según la configuración actual.
       `,
       contact: {
-        name: 'API Support',
-        email: 'support@rides.com',
+        name: 'Proyecto1-Diseño Team',
+        email: 'proyecto1@diseño.edu',
       },
       license: {
         name: 'MIT',
@@ -49,11 +53,11 @@ Implementa autenticación JWT, patrón Repository y está lista para despliegue 
     servers: [
       {
         url: 'http://localhost:3002',
-        description: 'Servidor de Desarrollo Local',
+        description: 'Desarrollo - Servidor Local (proyecto1-diseño)',
       },
       {
-        url: 'https://your-azure-app.azurewebsites.net',
-        description: 'Servidor de Producción (Azure)',
+        url: 'https://proyecto1-diseno.azurewebsites.net',
+        description: 'Producción - Azure Web App (proyecto1-diseño)',
       },
     ],
     tags: [

@@ -4,11 +4,12 @@ import { getAllUsers, getUserById, updateUser, deleteUser } from '../controllers
 
 const router = Router();
 
-router.use(authenticate);
-
-router.get('/', authorize('admin'), getAllUsers);
+// Public endpoints (no authentication required for demo purposes)
+router.get('/', getAllUsers);
 router.get('/:id', getUserById);
-router.put('/:id', updateUser);
-router.delete('/:id', authorize('admin'), deleteUser);
+
+// Protected endpoints (authentication required)
+router.put('/:id', authenticate, updateUser);
+router.delete('/:id', authenticate, authorize('admin'), deleteUser);
 
 export default router;

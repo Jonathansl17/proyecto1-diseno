@@ -4,8 +4,7 @@ import { getAnalyticsOverview, getRevenueAnalytics, getTripsAnalytics } from '..
 
 const router = Router();
 
-router.use(authenticate);
-
+// Public endpoints (no authentication required for demo purposes)
 router.get('/overview', getAnalyticsOverview);
 router.get('/revenue', getRevenueAnalytics);
 router.get('/trips', getTripsAnalytics);

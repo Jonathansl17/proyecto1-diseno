@@ -1,53 +1,75 @@
-# 🚗 Rides - Sistema de Gestión de Viajes Compartidos
+# 🚗 Rides App - Sistema de Gestión de Viajes
 
-Aplicación completa de gestión de viajes con Frontend Next.js y Backend API REST.
+Aplicación completa de gestión de viajes con **Next.js (frontend)** y **Express (backend)**.
 
 ## 📋 Descripción
 
 Sistema full-stack que combina:
-- **Frontend**: Aplicación Next.js con React 19, TypeScript y Tailwind CSS
-- **Backend**: API REST con autenticación JWT, documentación Swagger y 32+ endpoints
+- **Frontend**: Next.js 15 con React 19, TypeScript, Tailwind CSS y integración completa con el API
+- **Backend**: Express API REST con autenticación JWT, documentación Swagger y 32 endpoints
+- **Integración**: 8 servicios TypeScript, Context API para autenticación global
 
 ## 🌟 Características
 
 ### Frontend
-- ✅ Dashboard interactivo con estadísticas en tiempo real
-- 📊 Gráficos y analíticas con Recharts
-- ⭐ Sistema de calificaciones mejorado
-- 📅 Timeline visual de viajes
-- 🎨 UI moderna con Tailwind CSS
-- 📱 Diseño responsive
+- ✅ **Autenticación completa** con JWT y React Context
+- ✅ **Dashboard interactivo** con estadísticas en tiempo real
+- 📊 **Gráficos y analíticas** con Recharts
+- ⭐ **Sistema de calificaciones** mejorado
+- 📅 **Timeline visual** de viajes
+- 🎨 **UI moderna** con Tailwind CSS 4
+- 📱 **Diseño responsive**
+- 🔐 **Rutas protegidas** con middleware de autenticación
+- 🆕 **Páginas de Login y Registro**
 
 ### Backend API
-- ✅ 32+ Endpoints RESTful
-- 🔐 Autenticación JWT completa
-- 📚 Documentación Swagger interactiva
-- 🏗️ Patrón Repository implementado
-- 🛡️ Validación y manejo de errores
-- ☁️ Listo para deploy en Azure
-- 🔄 CORS configurado
+- ✅ **32 Endpoints RESTful** organizados en 8 módulos
+- 🔐 **Autenticación JWT** con bcrypt
+- 📚 **Documentación Swagger** interactiva (OpenAPI 3.0)
+- 🏗️ **Repository Pattern** implementado
+- 🛡️ **Validación y manejo de errores**
+- ☁️ **Listo para Azure** con GitHub Actions
+- 🔄 **CORS configurado**
+- 🗄️ **In-memory database** (fácil migración a PostgreSQL)
+
+### Integración Frontend-Backend
+- ✅ **8 Servicios TypeScript** para consumir el API
+- ✅ **AuthContext** para gestión global de autenticación
+- ✅ **Componentes reutilizables** (Loading, ErrorDisplay, ProtectedRoute)
+- ✅ **Variables de entorno** configuradas
+- ✅ **Token JWT** guardado en localStorage
 
 ## 🚀 Inicio Rápido
 
 ### Prerrequisitos
 - Node.js 20.x o superior
-- npm o yarn
+- npm
 
-### Instalación
+### Opción 1: Script Automático (Recomendado)
 
 ```bash
-# Clonar el repositorio
-git clone https://github.com/Jonathansl17/proyecto1-diseno.git
-cd proyecto1-diseno
-
 # Instalar dependencias
 npm install
 
-# Configurar variables de entorno
-cp .env.example .env
+# Iniciar todo automáticamente
+npm run quick-start
 ```
 
-### Ejecutar el Proyecto
+O directamente:
+```bash
+.\start.ps1
+```
+
+### Opción 2: Manual
+
+**Terminal 1 - Backend:**
+```bash
+npm run server:dev
+```
+
+**Terminal 2 - Frontend:**
+```bash
+npm run dev
 
 #### Frontend Next.js
 ```bash

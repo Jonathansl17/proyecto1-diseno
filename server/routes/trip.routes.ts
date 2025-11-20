@@ -4,13 +4,13 @@ import { getAllTrips, getTripById, createTrip, updateTrip, deleteTrip } from '..
 
 const router = Router();
 
-// All routes require authentication
-router.use(authenticate);
-
+// Public endpoints (no authentication required)
 router.get('/', getAllTrips);
 router.get('/:id', getTripById);
-router.post('/', createTrip);
-router.put('/:id', updateTrip);
-router.delete('/:id', deleteTrip);
+
+// Protected endpoints (authentication required)
+router.post('/', authenticate, createTrip);
+router.put('/:id', authenticate, updateTrip);
+router.delete('/:id', authenticate, deleteTrip);
 
 export default router;

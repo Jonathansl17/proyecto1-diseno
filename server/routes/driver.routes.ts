@@ -4,11 +4,12 @@ import { getAllDrivers, getDriverById, createDriver, updateDriver } from '../con
 
 const router = Router();
 
-router.use(authenticate);
-
+// Public endpoints (no authentication required)
 router.get('/', getAllDrivers);
 router.get('/:id', getDriverById);
-router.post('/', createDriver);
-router.put('/:id', updateDriver);
+
+// Protected endpoints (authentication required)
+router.post('/', authenticate, createDriver);
+router.put('/:id', authenticate, updateDriver);
 
 export default router;

@@ -4,10 +4,11 @@ import { getAllRatings, createRating, getRatingsByDriver } from '../controllers/
 
 const router = Router();
 
-router.use(authenticate);
-
+// Public endpoints (no authentication required)
 router.get('/', getAllRatings);
-router.post('/', createRating);
 router.get('/driver/:driverId', getRatingsByDriver);
+
+// Protected endpoints (authentication required)
+router.post('/', authenticate, createRating);
 
 export default router;

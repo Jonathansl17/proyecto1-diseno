@@ -8,7 +8,8 @@
     "start": "next start",
     "server": "tsx server/server.ts",
     "server:dev": "tsx watch server/server.ts",
-    "server:watch": "tsx watch server/server.ts"
+    "server:watch": "tsx watch server/server.ts",
+    "quick-start": "powershell -ExecutionPolicy Bypass -File .\\start.ps1"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

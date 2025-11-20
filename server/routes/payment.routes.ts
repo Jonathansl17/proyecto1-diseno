@@ -4,11 +4,12 @@ import { getAllPayments, getPaymentById, createPayment, updatePayment } from '..
 
 const router = Router();
 
-router.use(authenticate);
-
+// Public endpoints (no authentication required)
 router.get('/', getAllPayments);
 router.get('/:id', getPaymentById);
-router.post('/', createPayment);
-router.put('/:id', updatePayment);
+
+// Protected endpoints (authentication required)
+router.post('/', authenticate, createPayment);
+router.put('/:id', authenticate, updatePayment);
 
 export default router;

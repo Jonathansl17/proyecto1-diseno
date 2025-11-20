@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import { errorHandler } from './middlewares/errorHandler';
+import { Database } from './repositories/database';
 
 // Routes
 import authRoutes from './routes/auth.routes';
@@ -16,6 +17,9 @@ import analyticsRoutes from './routes/analytics.routes';
 import vehicleRoutes from './routes/vehicle.routes';
 
 dotenv.config();
+
+// Initialize database with seed data
+Database.initialize();
 
 const app: Application = express();
 const PORT = process.env.PORT || 3002;
@@ -34,6 +38,61 @@ app.get('/health', (req, res) => {
     status: 'OK', 
     message: 'Rides API is running',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Public endpoint to view sample data (no authentication required)
+app.get('/api/demo-data', (req, res) => {
+  const drivers = Database.getAllDrivers();
+  const trips = Database.getAllTrips();
+  const vehicles = Database.getAllVehicles();
+  const ratings = Database.getAllRatings();
+  const payments = Database.getAllPayments();
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Datos de demostración del sistema',
+    data: {
+      stats: {
+        totalDrivers: drivers.length,
+        totalTrips: trips.length,
+        totalVehicles: vehicles.length,
+        totalRatings: ratings.length,
+        totalPayments: payments.length,
+      },
+      drivers: drivers.map(d => ({
+        id: d.id,
+        name: d.name,
+        rating: d.rating,
+        totalTrips: d.totalTrips,
+        isAvailable: d.isAvailable,
+      })),
+      trips: trips.slice(0, 10).map(t => ({
+        id: t.id,
+        from: t.from,
+        to: t.to,
+        distance: t.distance,
+        duration: t.duration,
+        price: t.price,
+        status: t.status,
+        date: t.date,
+      })),
+      vehicles: vehicles.map(v => ({
+        id: v.id,
+        brand: v.brand,
+        model: v.model,
+        year: v.year,
+        plate: v.plate,
+        color: v.color,
+        type: v.type,
+      })),
+      popularRoutes: [
+        { route: 'CDMX → Guadalajara', trips: trips.filter(t => t.from.includes('México') && t.to.includes('Guadalajara')).length },
+        { route: 'CDMX → Monterrey', trips: trips.filter(t => t.from.includes('México') && t.to.includes('Monterrey')).length },
+        { route: 'Guadalajara → Puerto Vallarta', trips: trips.filter(t => t.from.includes('Guadalajara') && t.to.includes('Puerto Vallarta')).length },
+        { route: 'Monterrey → Saltillo', trips: trips.filter(t => t.from.includes('Monterrey') && t.to.includes('Saltillo')).length },
+      ].filter(r => r.trips > 0),
+    },
   });
 });
 

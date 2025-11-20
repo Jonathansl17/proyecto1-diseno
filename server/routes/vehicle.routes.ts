@@ -4,11 +4,12 @@ import { getAllVehicles, getVehicleById, createVehicle, updateVehicle } from '..
 
 const router = Router();
 
-router.use(authenticate);
-
+// Public endpoints (no authentication required)
 router.get('/', getAllVehicles);
 router.get('/:id', getVehicleById);
-router.post('/', createVehicle);
-router.put('/:id', updateVehicle);
+
+// Protected endpoints (authentication required)
+router.post('/', authenticate, createVehicle);
+router.put('/:id', authenticate, updateVehicle);
 
 export default router;
