@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack -p 5174",
     "build": "next build --turbopack",
-    "start": "next start",
+    "start": "next start -p 5174",
     "server": "tsx server/server.ts",
-    "server:dev": "tsx watch server/server.ts",
-    "server:watch": "tsx watch server/server.ts"
-  },
+    "server:dev": "tsx watch server/server.ts"
+  }
+  ,
   "dependencies": {
     "@azure/cosmos": "^4.9.0",
     "@azure/identity": "^4.13.0",
