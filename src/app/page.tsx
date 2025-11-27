@@ -44,6 +44,14 @@ export default function EnhancedHomeScreen() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [weather, setWeather] = useState({ temp: "26", condition: "☀️", location: "Cartago" });
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [greeting, setGreeting] = useState("");
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("Buenos días");
+    else if (hour < 18) setGreeting("Buenas tardes");
+    else setGreeting("Buenas noches");
+  }, []);
 
   useEffect(() => {
     setIsVisible(true);
@@ -331,7 +339,7 @@ export default function EnhancedHomeScreen() {
                   {user.avatar}
                 </div>
                 <p className="text-lg font-bold bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">
-                  {getGreeting()}, {user.name} 👋
+                  {greeting}, {user.name} 👋
                 </p>
               </div>
               <p className="text-xs uppercase tracking-wider text-cyan-400 font-semibold">RideNow Costa Rica</p>
