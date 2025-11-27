@@ -113,7 +113,7 @@ PORT=3002
 NODE_ENV=production
 JWT_SECRET=desarrollo-secret-key-cambiar-en-produccion-123456789
 JWT_EXPIRES_IN=7d
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002.https://mytry.dev/
 
 # Azure Cosmos DB Configuration (Generado automáticamente el $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))
 DB_MODE=azure
