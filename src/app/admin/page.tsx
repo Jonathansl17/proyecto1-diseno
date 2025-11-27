@@ -11,26 +11,37 @@ function clsx(...args: (string | undefined | null | false)[]) {
   return args.filter(Boolean).join(" ");
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function TripsMockupV4() {
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("timeline");
-  type Trip = {
-    id: string;
-    status: string;
-    from: string;
-    to: string;
-    date: string;
-    time: string;
-    duration: string;
-    distance: string;
-    price: string;
-    driver: { name: string; rating: number; avatar: string };
-    vehicle: string;
-    rideType: string;
-    paymentMethod: string;
-    city: string;
-  };
 
+type Trip = {
+  id: string;
+  userId: string;
+  driverId: string;
+  status: string;
+  from: string;
+  to: string;
+  date: string;
+  time: string;
+  duration: string;
+  distance: string;
+  price: number;
+  rideType: string;
+  paymentMethod: string;
+  city: string;
+  createdAt: string;
+  updatedAt: string;
+  // tu backend NO manda driver ni vehicle todavía
+  driver?: { name: string; rating: number; avatar: string } | null;
+  vehicleId: string;
+};
+
+
+
+  const [trips, setTrips] = useState<Trip[]>([]);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -45,154 +56,22 @@ export default function TripsMockupV4() {
     setIsVisible(true);
   }, []);
 
-  const trips = [
-    {
-      id: "1",
-      status: "active",
-      from: "Mi ubicación actual",
-      to: "TEC Cartago",
-      date: "2025-09-29",
-      time: "14:25",
-      duration: "12 min",
-      distance: "8.2 km",
-      price: "2840",
-      driver: { name: "Carlos Méndez", rating: 4.9, avatar: "CM" },
-      vehicle: "Toyota Yaris",
-      rideType: "standard",
-      paymentMethod: "Visa",
-      city: "Cartago"
-    },
-    {
-      id: "2",
-      status: "completed",
-      from: "Centro de San José",
-      to: "Universidad de Costa Rica",
-      date: "2025-09-28",
-      time: "09:15",
-      duration: "18 min",
-      distance: "12.5 km",
-      price: "3200",
-      driver: { name: "Ana Rodríguez", rating: 4.8, avatar: "AR" },
-      vehicle: "Honda Civic",
-      rideType: "premium",
-      paymentMethod: "Mastercard",
-      city: "San José"
-    },
-    {
-      id: "3",
-      status: "completed",
-      from: "Aeropuerto Juan Santamaría",
-      to: "Hotel Presidente",
-      date: "2025-09-26",
-      time: "16:30",
-      duration: "35 min",
-      distance: "22.1 km",
-      price: "5650",
-      driver: { name: "Miguel Castro", rating: 5.0, avatar: "MC" },
-      vehicle: "Nissan Sentra",
-      rideType: "premium",
-      paymentMethod: "Efectivo",
-      city: "Alajuela"
-    },
-    {
-      id: "4",
-      status: "scheduled",
-      from: "Casa",
-      to: "Aeropuerto Juan Santamaría",
-      date: "2025-09-30",
-      time: "06:00",
-      duration: "~ 30 min",
-      distance: "~ 20 km",
-      price: "4800",
-      driver: { name: "Por asignar", rating: 0, avatar: "?" },
-      vehicle: "Vehículo Premium",
-      rideType: "premium",
-      paymentMethod: "Visa",
-      city: "Alajuela"
+  useEffect(() => {
+    async function loadTrips() {
+      try {
+        const res = await fetch(`${API_URL}/api/trips`);
+        const data = await res.json();
+        console.log("Viajes cargados:", data);
+        setTrips(data.data.trips);
+      } catch (err) {
+        console.error("Error cargando viajes:", err);
+      }
     }
-    ,
-    {
-      id: "5",
-      status: "cancelled",
-      from: "Mall San Pedro",
-      to: "Casa",
-      date: "2025-09-25",
-      time: "19:00",
-      duration: "15 min",
-      distance: "7.8 km",
-      price: "2500",
-      driver: { name: "Luis Vargas", rating: 4.7, avatar: "LV" },
-      vehicle: "Hyundai Accent",
-      rideType: "standard",
-      paymentMethod: "Efectivo",
-      city: "San José"
-    },
-    {
-      id: "6",
-      status: "completed",
-      from: "Hotel Presidente",
-      to: "Aeropuerto Juan Santamaría",
-      date: "2025-09-24",
-      time: "11:45",
-      duration: "40 min",
-      distance: "23.5 km",
-      price: "5900",
-      driver: { name: "Miguel Castro", rating: 5.0, avatar: "MC" },
-      vehicle: "Nissan Sentra",
-      rideType: "premium",
-      paymentMethod: "Visa",
-      city: "Alajuela"
-    },
-    {
-      id: "7",
-      status: "active",
-      from: "Casa",
-      to: "Centro de San José",
-      date: "2025-09-30",
-      time: "08:10",
-      duration: "20 min",
-      distance: "10.0 km",
-      price: "3100",
-      driver: { name: "Ana Rodríguez", rating: 4.8, avatar: "AR" },
-      vehicle: "Honda Civic",
-      rideType: "standard",
-      paymentMethod: "Mastercard",
-      city: "San José"
-    },
-    {
-      id: "8",
-      status: "scheduled",
-      from: "UCR San Pedro",
-      to: "TEC Cartago",
-      date: "2025-10-01",
-      time: "13:00",
-      duration: "~ 25 min",
-      distance: "~ 18 km",
-      price: "4200",
-      driver: { name: "Por asignar", rating: 0, avatar: "?" },
-      vehicle: "Vehículo Premium",
-      rideType: "premium",
-      paymentMethod: "Visa",
-      city: "Cartago"
-    },
-    {
-      id: "9",
-      status: "completed",
-      from: "Aeropuerto Juan Santamaría",
-      to: "Casa",
-      date: "2025-09-23",
-      time: "21:30",
-      duration: "35 min",
-      distance: "22.0 km",
-      price: "5700",
-      driver: { name: "Carlos Méndez", rating: 4.9, avatar: "CM" },
-      vehicle: "Toyota Yaris",
-      rideType: "standard",
-      paymentMethod: "Efectivo",
-      city: "Alajuela"
-    }
-  ];
 
+    loadTrips();
+  }, []);
+
+  
   const topDrivers = [
     { name: "Miguel Castro", avatar: "MC", avgRating: 5.0, trips: 8 },
     { name: "Carlos Méndez", avatar: "CM", avgRating: 4.9, trips: 12 },
@@ -226,15 +105,15 @@ export default function TripsMockupV4() {
     const completedTrips = trips.filter(trip => trip.status === 'completed').length;
     const activeTrips = trips.filter(trip => trip.status === 'active').length;
     const scheduledTrips = trips.filter(trip => trip.status === 'scheduled').length;
-    
+
     const totalRevenue = trips
       .filter(trip => trip.status === 'completed')
-      .reduce((sum, trip) => sum + parseInt(trip.price), 0);
-    
+      .reduce((sum, trip) => sum + trip.price, 0); // <- ARREGLADO
+
     const avgTripValue = totalRevenue / completedTrips || 0;
-    
-    const uniqueDrivers = new Set(trips.map(trip => trip.driver.name)).size;
-    
+
+    const uniqueDrivers = new Set(trips.map(trip => trip.driver?.name)).size;
+
     return {
       totalTrips,
       completedTrips,
@@ -245,6 +124,7 @@ export default function TripsMockupV4() {
       uniqueDrivers
     };
   };
+
 
   const getRevenueByDay = () => {
     const last7Days = Array.from({length: 7}, (_, i) => {
@@ -257,7 +137,7 @@ export default function TripsMockupV4() {
       const dayTrips = trips.filter(trip => 
         trip.date === date && trip.status === 'completed'
       );
-      const revenue = dayTrips.reduce((sum, trip) => sum + parseInt(trip.price), 0);
+      const revenue = dayTrips.reduce((sum, trip) => sum + trip.price, 0);
       const tripCount = dayTrips.length;
       
       return {
@@ -331,12 +211,12 @@ export default function TripsMockupV4() {
     if (dateRange.from && trip.date < dateRange.from) return false;
     if (dateRange.to && trip.date > dateRange.to) return false;
     
-    const price = parseInt(trip.price);
+    const price = trip.price;
     if (priceRange.min && price < parseInt(priceRange.min)) return false;
     if (priceRange.max && price > parseInt(priceRange.max)) return false;
     
     if (selectedCity !== "all" && trip.city !== selectedCity) return false;
-    if (selectedDriver !== "all" && trip.driver.name !== selectedDriver) return false;
+    if (selectedDriver !== "all" && trip.driver?.name !== selectedDriver) return false;
     
     return true;
   });
@@ -601,7 +481,7 @@ export default function TripsMockupV4() {
                               
                               <div className="text-right ml-4">
                                 <p className="text-3xl font-black text-cyan-400 mb-1">
-                                  ₡{parseInt(trip.price).toLocaleString()}
+                                  ₡{trip.price.toLocaleString()}
                                 </p>
                                 <div className="text-xs text-white/60">
                                   {trip.paymentMethod}
@@ -613,19 +493,19 @@ export default function TripsMockupV4() {
                             <div className="flex items-center justify-between pt-4 border-t border-white/10">
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold">
-                                  {trip.driver.avatar}
+                                  {trip.driver?.avatar}
                                 </div>
                                 <div>
-                                  <p className="text-white font-medium">{trip.driver.name}</p>
+                                  <p className="text-white font-medium">{trip.driver?.name}</p>
                                   <div className="flex items-center gap-1">
                                     <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                                    <span className="text-yellow-400 text-xs font-medium">{trip.driver.rating}</span>
+                                    <span className="text-yellow-400 text-xs font-medium">{trip.driver?.rating}</span>
                                   </div>
                                 </div>
                               </div>
                               
                               <div className="text-right">
-                                <p className="text-white/70 text-sm font-medium">{trip.vehicle}</p>
+                                <p className="text-white/70 text-sm font-medium">{trip.vehicleId}</p>
                                 <p className="text-white/50 text-xs">
                                   {trip.rideType === 'premium' ? '👑 Premium' : '🚗 Standard'}
                                 </p>
@@ -1028,51 +908,9 @@ export default function TripsMockupV4() {
               </div>
 
               {/* Tabla de Rendimiento por Conductor */}
-              <div className="rounded-2xl border border-white/20 bg-white/5 p-6">
-                <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <Star className="w-5 h-5" />
-                  Rendimiento por Conductor
-                </h4>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-white/20">
-                        <th className="pb-3 text-white/70 font-medium">Conductor</th>
-                        <th className="pb-3 text-white/70 font-medium">Viajes</th>
-                        <th className="pb-3 text-white/70 font-medium">Rating</th>
-                        <th className="pb-3 text-white/70 font-medium">Ingresos Estimados</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {topDrivers.map((driver, index) => {
-                        const driverTrips = trips.filter(trip => trip.driver.name === driver.name);
-                        const driverRevenue = driverTrips.reduce((sum, trip) => sum + parseInt(trip.price), 0);
-                        return (
-                          <tr key={index} className="border-b border-white/10">
-                            <td className="py-3">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                                  {driver.avatar}
-                                </div>
-                                <span className="text-white font-medium">{driver.name}</span>
-                              </div>
-                            </td>
-                            <td className="py-3 text-white">{driver.trips}</td>
-                            <td className="py-3">
-                              <div className="flex items-center gap-1">
-                                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                <span className="text-white">{driver.avgRating}</span>
-                              </div>
-                            </td>
-                            <td className="py-3 text-green-400 font-bold">₡{driverRevenue.toLocaleString()}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+
               </div>
-            </div>
+     
           )}
 
           {activeTab === "list" && (
@@ -1101,7 +939,7 @@ export default function TripsMockupV4() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-cyan-400">₡{parseInt(trip.price).toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-cyan-400">₡{trip.price.toLocaleString()}</p>
                       <p className="text-xs text-white/60">{trip.duration}</p>
                     </div>
                   </div>
@@ -1143,7 +981,7 @@ export default function TripsMockupV4() {
               </div>
               <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4">
                 <p className="text-sm text-white/60">Total</p>
-                <p className="text-3xl font-black text-white">₡{parseInt(selectedTrip.price).toLocaleString()}</p>
+                <p className="text-3xl font-black text-white">₡{selectedTrip.price.toLocaleString()}</p>
               </div>
               <button
                 onClick={() => {
