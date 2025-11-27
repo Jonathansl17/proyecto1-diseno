@@ -45,69 +45,47 @@ Sistema full-stack que combina:
 - Node.js 20.x o superior
 - npm
 
-### Opción 1: Script Automático (Recomendado)
+### Instalación
 
 ```bash
 # Instalar dependencias
 npm install
-
-# Iniciar todo automáticamente
-npm run quick-start
 ```
 
-O directamente:
-```bash
-.\start.ps1
-```
-
-### Opción 2: Manual
+### Ejecución
 
 **Terminal 1 - Backend:**
 ```bash
 npm run server:dev
 ```
+Abre [http://localhost:3002/api-docs](http://localhost:3002/api-docs) para Swagger
 
 **Terminal 2 - Frontend:**
-```bash
-npm run dev
-
-#### Frontend Next.js
 ```bash
 npm run dev
 ```
 Abre [http://localhost:3000](http://localhost:3000) para ver el frontend
 
-#### Backend API
-```bash
-npm run server:dev
-```
-Abre [http://localhost:3002/api-docs](http://localhost:3002/api-docs) para Swagger
-
 ## 📚 Documentación
 
-### Documentación del API
-- **[API_README.md](./API_README.md)**: Documentación completa del backend
-  - Lista de todos los endpoints
-  - Ejemplos de uso
-  - Justificación del patrón Repository
+- **[GUIA_EJECUCION.md](./GUIA_EJECUCION.md)**: Guía completa de ejecución paso a paso
+  - Instalación de dependencias
+  - Iniciar backend y frontend
+  - Generar tokens JWT
+  - Uso de Swagger
+  - Ejemplos de pruebas
   
-### Deployment
-- **[AZURE_DEPLOYMENT.md](./AZURE_DEPLOYMENT.md)**: Guía de despliegue en Azure
-  - Comandos Azure CLI
-  - Configuración de políticas
+- **[AZURE_INTEGRATION.md](./AZURE_INTEGRATION.md)**: Integración con Azure Cosmos DB
+  - Configuración automática y manual
+  - Modo dual (Memory/Azure)
+  - Políticas de seguridad
+  - Costos y monitoreo
+
+- **[DESPLIEGUE_AZURE.md](./DESPLIEGUE_AZURE.md)**: Guía completa de despliegue en Azure
+  - Azure CLI y recursos
+  - App Service deployment
+  - Variables de entorno
   - CI/CD con GitHub Actions
-
-### Git & Commits
-- **[GIT_COMMITS_GUIDE.md](./GIT_COMMITS_GUIDE.md)**: Guía de commits estructurados
-  - Conventional Commits
-  - Ejemplos específicos del proyecto
-  - Workflow completo
-
-### Resumen del Proyecto
-- **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)**: Resumen ejecutivo
-  - Cumplimiento de requisitos
-  - Métricas del proyecto
-  - Notas para defensa
 
 ## 🛠️ Tecnologías
 
@@ -147,16 +125,14 @@ proyecto1-diseno/
 │   ├── controllers/      # Controladores (8)
 │   ├── middlewares/      # Auth, Error handling
 │   ├── repositories/     # Repository pattern
-│   ├── routes/           # Rutas (8)
+│   ├── routes/           # Rutas (8 módulos)
 │   ├── types/            # TypeScript types
 │   └── server.ts         # Entry point
-├── public/               # Assets estáticos
-├── azure/                # Configuración Azure
 ├── .github/workflows/    # CI/CD
-├── API_README.md         # Docs del API
-├── AZURE_DEPLOYMENT.md   # Guía de deploy
-├── GIT_COMMITS_GUIDE.md  # Guía de commits
-├── PROJECT_SUMMARY.md    # Resumen ejecutivo
+├── GUIA_EJECUCION.md     # Guía de ejecución
+├── AZURE_INTEGRATION.md  # Integración Azure
+├── DESPLIEGUE_AZURE.md   # Guía de deploy
+├── setup-azure.ps1       # Script Azure automático
 └── package.json
 ```
 
@@ -174,7 +150,7 @@ El API cuenta con **32 endpoints** organizados en 8 módulos:
 - **Vehicles** (4): Gestión de vehículos
 - **Health** (1): Health check
 
-Ver [API_README.md](./API_README.md) para detalles completos.
+Ver [GUIA_EJECUCION.md](./GUIA_EJECUCION.md) para detalles completos de los endpoints.
 
 ## 🔐 Autenticación
 
@@ -203,14 +179,11 @@ Authorization: Bearer <token>
 ## 🧪 Testing
 
 ```bash
+# Test con Swagger UI (Recomendado)
+Abrir: http://localhost:3002/api-docs
+
 # Test manual con PowerShell
-.\test-api.ps1
-
-# Test con Postman
-# Importar: Rides_API.postman_collection.json
-
-# Test con Swagger UI
-# Abrir: http://localhost:3002/api-docs
+Invoke-RestMethod -Uri http://localhost:3002/api/trips -Method GET
 ```
 
 ## 🏗️ Patrón de Diseño: Repository
@@ -228,7 +201,7 @@ El proyecto implementa el **patrón Repository** para abstraer la lógica de acc
 Routes → Controllers → Repository → Data Layer
 ```
 
-Ver justificación completa en [API_README.md](./API_README.md#arquitectura-y-patrones-de-diseño)
+Esta arquitectura permite cambiar la base de datos (de in-memory a Azure Cosmos DB) sin modificar los controladores.
 
 ## ☁️ Deploy en Azure
 
@@ -243,7 +216,7 @@ az webapp config appsettings set --resource-group rides-api-rg --name rides-api-
 az webapp deployment source config --name rides-api-yourname --resource-group rides-api-rg --repo-url https://github.com/YOUR_REPO --branch master
 ```
 
-Ver guía completa en [AZURE_DEPLOYMENT.md](./AZURE_DEPLOYMENT.md)
+Ver guía completa en [DESPLIEGUE_AZURE.md](./DESPLIEGUE_AZURE.md) y [AZURE_INTEGRATION.md](./AZURE_INTEGRATION.md)
 
 ## 📊 Scripts Disponibles
 
@@ -263,11 +236,13 @@ npm run server:watch # Watch mode
 
 1. Fork el proyecto
 2. Crear feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit cambios (`git commit -m 'feat: add amazing feature'`)
+3. Commit cambios usando **Conventional Commits**:
+   - `feat:` nuevas funcionalidades
+   - `fix:` correcciones de errores
+   - `docs:` cambios en documentación
+   - `refactor:` refactorización de código
 4. Push al branch (`git push origin feature/amazing-feature`)
 5. Abrir Pull Request
-
-Ver [GIT_COMMITS_GUIDE.md](./GIT_COMMITS_GUIDE.md) para nomenclatura de commits.
 
 ## 📄 Licencia
 
@@ -279,18 +254,12 @@ Proyecto desarrollado por Jonathan para el curso de Diseño de Software.
 
 ## 🔗 Enlaces Útiles
 
-- [Swagger Documentation](http://localhost:3002/api-docs) - Documentación interactiva
-- [API README](./API_README.md) - Documentación completa del backend
-- [Azure Deployment](./AZURE_DEPLOYMENT.md) - Guía de despliegue
-- [Git Commits Guide](./GIT_COMMITS_GUIDE.md) - Guía de commits
-- [Project Summary](./PROJECT_SUMMARY.md) - Resumen ejecutivo
+- **[Swagger Documentation](http://localhost:3002/api-docs)** - API interactiva
+- **[GUIA_EJECUCION.md](./GUIA_EJECUCION.md)** - Guía completa de ejecución
+- **[AZURE_INTEGRATION.md](./AZURE_INTEGRATION.md)** - Integración Azure Cosmos DB
+- **[DESPLIEGUE_AZURE.md](./DESPLIEGUE_AZURE.md)** - Despliegue en Azure
+- **[GitHub Repository](https://github.com/Jonathansl17/proyecto1-diseno)** - Código fuente
 
 ---
 
-⭐ Si te gusta este proyecto, dale una estrella en GitHub!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+⭐ Proyecto desarrollado para el curso de Diseño de Software - TEC Costa Rica

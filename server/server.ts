@@ -5,6 +5,8 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import { errorHandler } from './middlewares/errorHandler';
 import { Database } from './repositories/database';
+import { checkAzureConnection, initializeCosmosDB } from './config/azure';
+import { AzureRepository } from './repositories/azureRepository';
 
 // Routes
 import authRoutes from './routes/auth.routes';
@@ -18,8 +20,39 @@ import vehicleRoutes from './routes/vehicle.routes';
 
 dotenv.config();
 
-// Initialize database with seed data
-Database.initialize();
+// Determine database mode
+const DB_MODE = process.env.DB_MODE || 'memory';
+let usingAzure = false;
+
+// Initialize database based on mode
+const initializeDatabase = async () => {
+  if (DB_MODE === 'azure') {
+    try {
+      console.log('🔄 Intentando conectar con Azure Cosmos DB...');
+      const isConnected = await checkAzureConnection();
+      
+      if (isConnected) {
+        await initializeCosmosDB();
+        await AzureRepository.initialize();
+        usingAzure = true;
+        console.log('✅ Usando Azure Cosmos DB');
+      } else {
+        console.warn('⚠️  Azure no disponible, usando base de datos en memoria');
+        Database.initialize();
+      }
+    } catch (error) {
+      console.error('❌ Error conectando con Azure:', error);
+      console.log('⚠️  Fallback a base de datos en memoria');
+      Database.initialize();
+    }
+  } else {
+    console.log('📦 Usando base de datos en memoria');
+    Database.initialize();
+  }
+};
+
+// Initialize database
+initializeDatabase();
 
 const app: Application = express();
 const PORT = process.env.PORT || 3002;
@@ -37,6 +70,7 @@ app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
     message: 'Rides API is running',
+    database: usingAzure ? 'Azure Cosmos DB' : 'In-Memory',
     timestamp: new Date().toISOString()
   });
 });

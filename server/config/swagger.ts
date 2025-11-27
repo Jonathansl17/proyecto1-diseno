@@ -53,11 +53,7 @@ y arquitectura lista para despliegue en Azure.
     servers: [
       {
         url: 'http://localhost:3002',
-        description: 'Desarrollo - Servidor Local (proyecto1-diseño)',
-      },
-      {
-        url: 'https://proyecto1-diseno.azurewebsites.net',
-        description: 'Producción - Azure Web App (proyecto1-diseño)',
+        description: '🟢 Servidor Local Activo - Proyecto1-Diseño (Costa Rica)',
       },
     ],
     tags: [
@@ -108,12 +104,45 @@ y arquitectura lista para despliegue en Azure.
           type: 'object',
           properties: {
             id: { type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000' },
-            email: { type: 'string', format: 'email', example: 'user@example.com' },
-            name: { type: 'string', example: 'John Doe' },
-            phone: { type: 'string', example: '+506 8888-8888' },
+            email: { type: 'string', format: 'email', example: 'carlos.rodriguez@proyecto.com' },
+            name: { type: 'string', example: 'Carlos Rodríguez Mora' },
+            phone: { type: 'string', example: '+506 8765-4321' },
             role: { type: 'string', enum: ['user', 'driver', 'admin'], example: 'user' },
             createdAt: { type: 'string', format: 'date-time' },
             updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        Driver: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            userId: { type: 'string', format: 'uuid' },
+            licenseNumber: { type: 'string', example: 'CR-123456789' },
+            vehicleId: { type: 'string', format: 'uuid' },
+            rating: { type: 'number', example: 4.8 },
+            totalTrips: { type: 'number', example: 156 },
+            isAvailable: { type: 'boolean', example: true },
+            location: { 
+              type: 'object',
+              properties: {
+                lat: { type: 'number', example: 9.9325 },
+                lng: { type: 'number', example: -84.0795 }
+              }
+            },
+          },
+        },
+        Vehicle: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            driverId: { type: 'string', format: 'uuid' },
+            make: { type: 'string', example: 'Toyota' },
+            model: { type: 'string', example: 'Corolla' },
+            year: { type: 'number', example: 2022 },
+            licensePlate: { type: 'string', example: 'SJO-1234' },
+            color: { type: 'string', example: 'Gris' },
+            capacity: { type: 'number', example: 4 },
+            type: { type: 'string', enum: ['sedan', 'suv', 'van'], example: 'sedan' },
           },
         },
         Trip: {
@@ -122,17 +151,59 @@ y arquitectura lista para despliegue en Azure.
             id: { type: 'string', format: 'uuid' },
             userId: { type: 'string', format: 'uuid' },
             driverId: { type: 'string', format: 'uuid' },
-            status: { type: 'string', enum: ['active', 'completed', 'scheduled', 'cancelled'] },
-            from: { type: 'string', example: 'Centro San José' },
+            status: { type: 'string', enum: ['active', 'completed', 'scheduled', 'cancelled'], example: 'completed' },
+            from: { type: 'string', example: 'Aeropuerto Juan Santamaría' },
             to: { type: 'string', example: 'TEC Cartago' },
-            date: { type: 'string', format: 'date', example: '2025-11-12' },
-            time: { type: 'string', example: '08:00' },
-            duration: { type: 'string', example: '45 min' },
-            distance: { type: 'string', example: '35 km' },
-            price: { type: 'number', example: 5500 },
-            rideType: { type: 'string', enum: ['standard', 'premium'] },
-            paymentMethod: { type: 'string', example: 'Visa' },
+            fromCoordinates: {
+              type: 'object',
+              properties: {
+                lat: { type: 'number', example: 9.9937 },
+                lng: { type: 'number', example: -84.2088 }
+              }
+            },
+            toCoordinates: {
+              type: 'object',
+              properties: {
+                lat: { type: 'number', example: 9.8632 },
+                lng: { type: 'number', example: -83.9119 }
+              }
+            },
+            date: { type: 'string', format: 'date', example: '2025-11-26' },
+            time: { type: 'string', example: '14:30' },
+            duration: { type: 'string', example: '50 min' },
+            distance: { type: 'string', example: '38.5 km' },
+            price: { type: 'number', example: 6200 },
+            vehicleId: { type: 'string', format: 'uuid' },
+            rideType: { type: 'string', enum: ['standard', 'premium'], example: 'premium' },
+            paymentMethod: { type: 'string', example: 'credit_card' },
             city: { type: 'string', example: 'Cartago' },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        Rating: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            tripId: { type: 'string', format: 'uuid' },
+            userId: { type: 'string', format: 'uuid' },
+            driverId: { type: 'string', format: 'uuid' },
+            rating: { type: 'number', minimum: 1, maximum: 5, example: 5 },
+            comment: { type: 'string', example: 'Excelente conductor, muy amable y puntual. Recomendado 100%.' },
+            createdAt: { type: 'string', format: 'date-time' },
+          },
+        },
+        Payment: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            tripId: { type: 'string', format: 'uuid' },
+            userId: { type: 'string', format: 'uuid' },
+            amount: { type: 'number', example: 6200 },
+            method: { type: 'string', enum: ['cash', 'credit_card', 'debit_card', 'paypal'], example: 'credit_card' },
+            status: { type: 'string', enum: ['pending', 'completed', 'failed', 'refunded'], example: 'completed' },
+            transactionId: { type: 'string', example: 'TXN-CR-20251126-001234' },
+            createdAt: { type: 'string', format: 'date-time' },
           },
         },
         Error: {
