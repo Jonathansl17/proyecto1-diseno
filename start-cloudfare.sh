@@ -15,7 +15,7 @@ nohup $NPM_BIN run server:dev > "$BACK_DIR/logs-backend.out" 2>&1 &
 
 # 3) Iniciar frontend en puerto 5174
 cd "$FRONT_DIR"
-nohup $NPM_BIN run dev -- --port=5174 --host > "$FRONT_DIR/logs-frontend.out" 2>&1 &
+nohup $NPM_BIN run dev > "$FRONT_DIR/logs-frontend.out" 2>&1 &
 
 # 4) Mostrar PIDs
 sleep 1
