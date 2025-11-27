@@ -59,7 +59,13 @@ const PORT = process.env.PORT || 5000;
 
 // Middlewares
 app.use(cors({
-  origin: '*',  // Permitir solicitudes de cualquier origen
+  origin: [
+    "https://mytry.dev",
+    "https://api.mytry.dev",
+    "http://localhost:5174"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
 }));
 
 app.use(express.json());
