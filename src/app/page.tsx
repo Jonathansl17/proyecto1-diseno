@@ -1,5 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+
+
 
 function clsx(...arr: (string | false | null | undefined)[]): string {
   return arr.filter(Boolean).join(" ");
@@ -29,7 +32,7 @@ interface Notification {
   time: string;
 }
 
-export default function EnhancedHomeScreen() {
+const EnhancedHomeScreenComponent = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
@@ -870,3 +873,8 @@ export default function EnhancedHomeScreen() {
     </div>
   );
 }  
+
+
+export default dynamic(() => Promise.resolve(EnhancedHomeScreenComponent), {
+  ssr: false,
+});
