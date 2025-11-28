@@ -37,9 +37,6 @@ useEffect(() => {
       const res = await fetch(`${API_URL}/api/users/123`);
       const json = await res.json();
 
-      console.log("👉 JSON recibido:", json);
-
-      // Aquí sabremos si json.data existe o no
       setUserProfile(json.data?.user ?? null);
 
     } catch (err) {
