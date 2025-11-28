@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
-} from 'recharts';
+
 import { TrendingUp, Users, Car, DollarSign, MapPin, Star, Calendar, Clock } from 'lucide-react';
+import { Trip, Driver } from "@/types/Trip";
+import Rating from "./Rating";
+import Analytics from "./Analytics";
+
 
 function clsx(...args: (string | undefined | null | false)[]) {
   return args.filter(Boolean).join(" ");
@@ -17,31 +18,12 @@ export default function TripsMockupV4() {
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("timeline");
 
-type Trip = {
-  id: string;
-  userId: string;
-  driverId: string;
-  status: string;
-  from: string;
-  to: string;
-  date: string;
-  time: string;
-  duration: string;
-  distance: string;
-  price: number;
-  rideType: string;
-  paymentMethod: string;
-  city: string;
-  createdAt: string;
-  updatedAt: string;
-  // tu backend NO manda driver ni vehicle todavía
-  driver?: { name: string; rating: number; avatar: string } | null;
-  vehicleId: string;
-};
-
 
 
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [ratings, setRatings] = useState<any[]>([]);
+
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -52,44 +34,212 @@ type Trip = {
   const [selectedCity, setSelectedCity] = useState("all");
   const [selectedDriver, setSelectedDriver] = useState("all");
 
+  // 📊 Estados para Analytics
+  const [stats, setStats] = useState({
+    totalTrips: 0,
+    completedTrips: 0,
+    activeTrips: 0,
+    totalDrivers: 0,
+    totalRevenue: 0,
+    avgTripValue: 0
+  });
+
+  const [revenueData, setRevenueData] = useState<any[]>([]);
+
+  const [cityData, setCityData] = useState<any[]>([]);
+
+  const [hourlyData, setHourlyData] = useState<any[]>([]);
+
+
+
+  function calculateHourlyDistribution(trips:any) {
+  const hourStats = trips.reduce((acc:any, trip:Trip) => {
+    const hour = parseInt(trip.time.split(':')[0]);
+    const period = hour < 12 ? "Mañana" : hour < 18 ? "Tarde" : "Noche";
+    acc[period] = (acc[period] || 0) + 1;
+    return acc;
+  }, {});
+
+  return Object.entries(hourStats).map(([period, trips]) => ({
+    period,
+    trips
+  }));
+}
+
+
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
+
+const calculateRatingStats = () => {
+  if (ratings.length === 0) {
+    return {
+      average: 0,
+      totalRatings: 0,
+      distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+    };
+  }
+
+  const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+
+  ratings.forEach(r => {
+    const rounded = Math.round(r.score);
+    distribution[rounded]++;
+  });
+
+  const average =
+    ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length;
+
+  return {
+    average: parseFloat(average.toFixed(2)),
+    totalRatings: ratings.length,
+    distribution
+  };
+};
+
+const calculateTopDrivers = () => {
+  if (!ratings.length || !drivers.length) return [];
+
+  const driverMap: Record<string, { name: string; total: number; count: number }> = {};
+
+  ratings.forEach(r => {
+    const driver = drivers.find(d => d.id === r.driverId);
+    if (!driver) return;
+
+    if (!driverMap[r.driverId]) {
+      driverMap[r.driverId] = {
+        name: driver.name,
+        total: 0,
+        count: 0
+      };
+    }
+
+    driverMap[r.driverId].total += r.score;
+    driverMap[r.driverId].count++;
+  });
+
+  return Object.entries(driverMap)
+    .map(([driverId, info]) => ({
+      name: info.name,
+      avatar: info.name
+        .split(" ")
+        .map((x) => x[0])
+        .join(""),
+      avgRating: parseFloat((info.total / info.count).toFixed(2)),
+      trips: info.count
+    }))
+    .sort((a, b) => b.avgRating - a.avgRating)
+    .slice(0, 5);
+};
+
+
   useEffect(() => {
-    async function loadTrips() {
+    async function loadData() {
       try {
-        const res = await fetch(`${API_URL}/api/trips`);
-        const data = await res.json();
-        console.log("Viajes cargados:", data);
-        setTrips(data.data.trips);
+        // cargar trips
+        const tripsRes = await fetch(`${API_URL}/api/trips`);
+        const tripsJson = await tripsRes.json();
+        const tripsRaw = tripsJson.data.trips;
+
+        // cargar drivers
+        const driversRes = await fetch(`${API_URL}/api/drivers`);
+        const driversJson = await driversRes.json();
+        const driversList = driversJson.data.drivers;
+
+        // cargar ratings
+        const ratingsRes = await fetch(`${API_URL}/api/ratings`);
+        const ratingsJson = await ratingsRes.json();
+        const ratingsList = ratingsJson.data.ratings;
+        setRatings(ratingsList);
+
+        setDrivers(driversList);
+
+        // Crear mapa de drivers por id
+        const driverMap: Record<string, any> = {};
+        for (const d of driversList) {
+          driverMap[d.id] = {
+            name: d.name,
+            rating: d.rating,
+            avatar: d.name
+              .split(" ")
+              .map((x:any) => x[0])
+              .join("")
+              .toUpperCase(), // ejemplo: "Carlos Méndez" → "CM"
+          };
+        }
+
+        // Insertar driver dentro del trip
+        const tripsWithDriver = tripsRaw.map((trip: any) => ({
+          ...trip,
+          driver: driverMap[trip.driverId] || null
+        }));
+
+        setTrips(tripsWithDriver);
+
       } catch (err) {
-        console.error("Error cargando viajes:", err);
+        console.error("Error cargando trips/drivers:", err);
       }
     }
 
-    loadTrips();
+    loadData();
   }, []);
 
-  
-  const topDrivers = [
-    { name: "Miguel Castro", avatar: "MC", avgRating: 5.0, trips: 8 },
-    { name: "Carlos Méndez", avatar: "CM", avgRating: 4.9, trips: 12 },
-    { name: "Ana Rodríguez", avatar: "AR", avgRating: 4.8, trips: 6 },
-    { name: "Luis Vargas", avatar: "LV", avgRating: 4.7, trips: 4 }
-  ];
 
-  const ratingStats = {
-    average: 4.85,
-    distribution: {
-      5: 45,
-      4: 35,
-      3: 15,
-      2: 3,
-      1: 2
-    },
-    totalRatings: 47
-  };
+  useEffect(() => {
+  async function fetchAnalytics() {
+    try {
+      const overviewRes = await fetch(`${API_URL}/api/analytics/overview`);
+      const revenueRes = await fetch(`${API_URL}/api/analytics/revenue`);
+      const tripsRes = await fetch(`${API_URL}/api/analytics/trips`);
+
+      const overview = (await overviewRes.json()).data;
+      const revenue = (await revenueRes.json()).data;
+      const tripsData = (await tripsRes.json()).data;
+
+      // 🔹 1. Stats (ya listos del backend)
+      setStats({
+        totalTrips: overview.totalTrips,
+        completedTrips: overview.completedTrips,
+        activeTrips: overview.activeTrips,
+        totalDrivers: overview.totalDrivers,
+        totalRevenue: overview.totalRevenue,
+        avgTripValue: overview.avgTripValue
+      });
+
+      // 🔹 2. Revenue gráfico (formato que requiere Recharts)
+      setRevenueData([
+        {
+          date: revenue.period,
+          revenue: revenue.totalRevenue,
+          trips: revenue.transactionCount
+        }
+      ]);
+
+      // 🔹 3. Distribución por ciudad
+      const formattedCities = Object.entries(tripsData.byCity).map(
+        ([city, value]) => ({
+          name: city,
+          value,
+          percentage: Math.round((value / tripsData.total) * 100)
+        })
+      );
+      setCityData(formattedCities);
+
+      // 🔹 4. Distribución por horario (se sigue calculando del trips[])
+      setHourlyData(calculateHourlyDistribution(trips));
+
+    } catch (error) {
+      console.error("Error al cargar analytics:", error);
+    }
+  }
+
+  fetchAnalytics();
+}, [trips]);
+
+
+  const ratingStats = calculateRatingStats();
+  const topDrivers = calculateTopDrivers();
 
   const heatmapData = [
     { destination: "TEC Cartago", frequency: 12, lat: 9.85, lng: -83.91 },
@@ -174,11 +324,6 @@ type Trip = {
       trips: count
     }));
   };
-
-  const stats = calculateStats();
-  const revenueData = getRevenueByDay();
-  const cityData = getCityDistribution();
-  const hourlyData = getHourlyDistribution();
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -585,331 +730,19 @@ type Trip = {
           )}
 
           {activeTab === "ratings" && (
-            <div className="space-y-8">
-              <div className="text-center mb-8">
-                <h3 className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent mb-2">
-                  ⭐ Sistema de Calificaciones
-                </h3>
-                <p className="text-white/60">Análisis detallado de ratings y rendimiento</p>
-              </div>
-
-              {/* Rating Principal Mejorado */}
-              <div className="relative rounded-3xl border border-yellow-500/30 bg-gradient-to-br from-yellow-500/20 via-orange-500/20 to-amber-500/20 p-8 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 animate-pulse"></div>
-                <div className="relative z-10">
-                  <div className="flex items-center justify-center mb-6">
-                    <div className="text-center">
-                      <p className="text-yellow-300 font-medium mb-2">Rating Promedio General</p>
-                      <div className="flex items-center justify-center gap-4 mb-4">
-                        <span className="text-7xl font-black text-white drop-shadow-lg">{ratingStats.average}</span>
-                        <div className="flex flex-col items-center">
-                          <div className="flex text-yellow-400 text-4xl mb-2">
-                            {[1,2,3,4,5].map((star) => (
-                              <span 
-                                key={star}
-                                className={`${star <= Math.floor(ratingStats.average) ? 'animate-pulse' : 'opacity-30'} transition-all duration-500`}
-                              >
-                                ⭐
-                              </span>
-                            ))}
-                          </div>
-                          <p className="text-sm text-yellow-200">Excelente</p>
-                        </div>
-                      </div>
-                      <p className="text-white/80 font-medium">Basado en {ratingStats.totalRatings} calificaciones</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Distribución de Ratings */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Gráfico de Distribución */}
-                <div className="lg:col-span-2 rounded-2xl border border-white/20 bg-white/5 p-6 backdrop-blur-sm">
-                  <h4 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                    <Star className="w-6 h-6 text-yellow-400" />
-                    Distribución de Calificaciones
-                  </h4>
-                  <div className="space-y-4">
-                    {Object.entries(ratingStats.distribution).reverse().map(([rating, count]) => {
-                      const percentage = (count / ratingStats.totalRatings) * 100;
-                      return (
-                        <div key={rating} className="flex items-center gap-4">
-                          <div className="flex items-center gap-2 w-20">
-                            <span className="text-white font-medium">{rating}</span>
-                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                          </div>
-                          <div className="flex-1 bg-white/10 rounded-full h-3 overflow-hidden">
-                            <div 
-                              className="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-1000 ease-out"
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                          <div className="text-right w-16">
-                            <span className="text-white font-bold">{count}</span>
-                            <span className="text-white/60 text-xs ml-1">({percentage.toFixed(1)}%)</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Estadísticas Rápidas */}
-                <div className="space-y-4">
-                  <div className="rounded-2xl border border-green-500/30 bg-gradient-to-br from-green-500/20 to-emerald-500/20 p-6">
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-green-500/30 rounded-xl flex items-center justify-center mx-auto mb-3">
-                        <TrendingUp className="w-6 h-6 text-green-400" />
-                      </div>
-                      <h5 className="font-bold text-white mb-1">Satisfacción</h5>
-                      <p className="text-3xl font-black text-green-400">{((ratingStats.distribution[4] + ratingStats.distribution[5]) / ratingStats.totalRatings * 100).toFixed(1)}%</p>
-                      <p className="text-xs text-white/60">4-5 estrellas</p>
-                    </div>
-                  </div>
-                  
-                  <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 p-6">
-                    <div className="text-center">
-                      <div className="w-12 h-12 bg-blue-500/30 rounded-xl flex items-center justify-center mx-auto mb-3">
-                        <Users className="w-6 h-6 text-blue-400" />
-                      </div>
-                      <h5 className="font-bold text-white mb-1">Conductores</h5>
-                      <p className="text-3xl font-black text-blue-400">{topDrivers.length}</p>
-                      <p className="text-xs text-white/60">Activos</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Top Conductores Mejorado */}
-              <div className="rounded-2xl border border-white/20 bg-white/5 p-6 backdrop-blur-sm">
-                <h4 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                  <Star className="w-6 h-6 text-yellow-400" />
-                  Ranking de Conductores
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {topDrivers.map((driver, i) => (
-                    <div key={i} className="group relative rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/10 p-6 hover:from-white/10 hover:to-white/15 transition-all duration-300 cursor-pointer">
-                      {/* Ranking Badge */}
-                      <div className="absolute -top-3 -left-3 w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center text-black font-black text-sm">
-                        #{i + 1}
-                      </div>
-                      
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="relative">
-                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                            {driver.avatar}
-                          </div>
-                          {/* Rating Badge */}
-                          <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-black px-2 py-1 rounded-full text-xs font-black">
-                            ⭐ {driver.avgRating}
-                          </div>
-                        </div>
-                        
-                        <div className="flex-1">
-                          <h5 className="font-bold text-white text-lg group-hover:text-yellow-300 transition-colors">
-                            {driver.name}
-                          </h5>
-                          <div className="flex items-center gap-2 mt-1">
-                            <div className="flex">
-                              {[1,2,3,4,5].map((star) => (
-                                <Star 
-                                  key={star}
-                                  className={`w-4 h-4 ${star <= Math.floor(driver.avgRating) ? 'text-yellow-400 fill-current' : 'text-gray-600'}`}
-                                />
-                              ))}
-                            </div>
-                            <span className="text-yellow-400 font-medium">({driver.avgRating})</span>
-                          </div>
-                          <p className="text-white/60 text-sm mt-1">{driver.trips} viajes completados</p>
-                        </div>
-                      </div>
-                      
-                      {/* Estadísticas del conductor */}
-                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
-                        <div className="text-center">
-                          <p className="text-white/60 text-xs">Eficiencia</p>
-                          <p className="text-cyan-400 font-bold">{((driver.avgRating / 5) * 100).toFixed(0)}%</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-white/60 text-xs">Experiencia</p>
-                          <p className="text-purple-400 font-bold">{driver.trips > 10 ? 'Alta' : driver.trips > 5 ? 'Media' : 'Nueva'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <Rating 
+            ratingStats={ratingStats}
+             topDrivers={topDrivers} />
           )}
 
           {activeTab === "analytics" && (
-            <div className="space-y-6">
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold text-white mb-2">📊 Dashboard de Estadísticas</h3>
-                <p className="text-white/60">Análisis completo de tu actividad de viajes</p>
-              </div>
-
-              {/* Métricas Principales */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="rounded-2xl border border-white/20 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Car className="w-6 h-6 text-blue-400" />
-                    <span className="text-sm font-medium text-blue-300">Total Viajes</span>
-                  </div>
-                  <p className="text-3xl font-black text-white">{stats.totalTrips}</p>
-                  <p className="text-xs text-white/60">+{stats.completedTrips} completados</p>
-                </div>
-
-                <div className="rounded-2xl border border-white/20 bg-gradient-to-br from-green-500/20 to-emerald-500/20 p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <DollarSign className="w-6 h-6 text-green-400" />
-                    <span className="text-sm font-medium text-green-300">Ingresos Totales</span>
-                  </div>
-                  <p className="text-3xl font-black text-white">₡{stats.totalRevenue.toLocaleString()}</p>
-                  <p className="text-xs text-white/60">Promedio: ₡{Math.round(stats.avgTripValue).toLocaleString()}</p>
-                </div>
-
-                <div className="rounded-2xl border border-white/20 bg-gradient-to-br from-purple-500/20 to-pink-500/20 p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Users className="w-6 h-6 text-purple-400" />
-                    <span className="text-sm font-medium text-purple-300">Conductores</span>
-                  </div>
-                  <p className="text-3xl font-black text-white">{stats.uniqueDrivers}</p>
-                  <p className="text-xs text-white/60">Conductores únicos</p>
-                </div>
-
-                <div className="rounded-2xl border border-white/20 bg-gradient-to-br from-orange-500/20 to-red-500/20 p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <TrendingUp className="w-6 h-6 text-orange-400" />
-                    <span className="text-sm font-medium text-orange-300">Activos</span>
-                  </div>
-                  <p className="text-3xl font-black text-white">{stats.activeTrips}</p>
-                  <p className="text-xs text-white/60">Viajes en curso</p>
-                </div>
-              </div>
-
-              {/* Gráfico de Ingresos por Día */}
-              <div className="rounded-2xl border border-white/20 bg-white/5 p-6">
-                <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  Ingresos de los Últimos 7 Días
-                </h4>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={revenueData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis 
-                        dataKey="date" 
-                        stroke="#9CA3AF"
-                        fontSize={12}
-                      />
-                      <YAxis 
-                        stroke="#9CA3AF"
-                        fontSize={12}
-                        tickFormatter={(value) => `₡${value.toLocaleString()}`}
-                      />
-                      <Tooltip 
-                        contentStyle={{
-                          backgroundColor: '#1F2937',
-                          border: '1px solid #374151',
-                          borderRadius: '8px',
-                          color: '#F9FAFB'
-                        }}
-                        formatter={(value: any) => [`₡${value.toLocaleString()}`, 'Ingresos']}
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="revenue" 
-                        stroke="#06B6D4" 
-                        fill="url(#colorRevenue)"
-                      />
-                      <defs>
-                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#06B6D4" stopOpacity={0.1}/>
-                        </linearGradient>
-                      </defs>
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Gráficos de Distribución */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Distribución por Ciudades */}
-                <div className="rounded-2xl border border-white/20 bg-white/5 p-6">
-                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                    <MapPin className="w-5 h-5" />
-                    Distribución por Ciudades
-                  </h4>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={cityData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percentage }) => `${name}: ${percentage}%`}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {cityData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{
-                            backgroundColor: '#1F2937',
-                            border: '1px solid #374151',
-                            borderRadius: '8px',
-                            color: '#F9FAFB'
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Viajes por Horario */}
-                <div className="rounded-2xl border border-white/20 bg-white/5 p-6">
-                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                    <Clock className="w-5 h-5" />
-                    Distribución por Horario
-                  </h4>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={hourlyData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                        <XAxis 
-                          dataKey="period" 
-                          stroke="#9CA3AF"
-                          fontSize={12}
-                        />
-                        <YAxis 
-                          stroke="#9CA3AF"
-                          fontSize={12}
-                        />
-                        <Tooltip 
-                          contentStyle={{
-                            backgroundColor: '#1F2937',
-                            border: '1px solid #374151',
-                            borderRadius: '8px',
-                            color: '#F9FAFB'
-                          }}
-                        />
-                        <Bar dataKey="trips" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tabla de Rendimiento por Conductor */}
-
-              </div>
+            <Analytics
+              stats={stats}
+              revenueData={revenueData}
+              cityData={cityData}
+              hourlyData={hourlyData}
+              COLORS={COLORS}
+            />
      
           )}
 
