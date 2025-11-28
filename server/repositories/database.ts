@@ -14,6 +14,36 @@ export class Database {
   // Initialize database with seed data
   static initialize() {
     if (this.initialized) return;
+
+    const userProfile: User = {
+      id: "123",
+      email: 'ana.rodriguez@email.com',
+      password: '123456', // luego se cambia por hash
+      name: 'Ana María Rodríguez',
+      phone: '88887777',
+      role: 'user',
+
+      avatar: 'AM',
+      totalTrips: 47,
+      rating: 4.9,
+
+      stats: {
+        co2Saved: 23.5,
+        totalSpent: 124800,
+        badges: ['🌱', '⭐', '🚗', '🏆']
+      },
+
+      socialStats: {
+        rank: 156,
+        percentile: 20,
+        comparison: 'top 20% de usuarios activos'
+      },
+
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.users.push(userProfile);
     
     // Seed Drivers (Costa Rica)
     const driver1: Driver = {
@@ -244,6 +274,7 @@ export class Database {
         updatedAt: new Date(),
       });
     });
+    
 
     this.initialized = true;
     console.log('✅ Base de datos inicializada con datos de ejemplo');

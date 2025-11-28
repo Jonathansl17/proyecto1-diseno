@@ -5,9 +5,26 @@ export interface User {
   name: string;
   phone: string;
   role: 'user' | 'driver' | 'admin';
+  avatar?: string;
+  totalTrips?: number;
+  rating?: number;
+
+  stats?: {
+    co2Saved: number;
+    totalSpent: number;
+    badges: string[];
+  };
+
+  socialStats?: {
+    rank: number;
+    percentile: number;
+    comparison: string;
+  };
+
   createdAt: Date;
   updatedAt: Date;
 }
+
 
 export interface Trip {
   id: string;

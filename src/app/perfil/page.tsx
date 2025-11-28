@@ -5,12 +5,15 @@ function clsx(...arr: (string | false | null | undefined)[]): string {
   return arr.filter(Boolean).join(" ");
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function EnhancedProfileScreen() {
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'achievements' | 'security' | 'settings'>('dashboard');
   const [showCelebration, setShowCelebration] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState('purple');
   const [showSecurityAlert, setShowSecurityAlert] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
 
   useEffect(() => {
     setIsVisible(true);
@@ -27,23 +30,27 @@ export default function EnhancedProfileScreen() {
     }, 2000);
   }, []);
 
-  const userProfile = {
-    name: 'Ana María Rodríguez',
-    email: 'ana.rodriguez@email.com',
-    avatar: 'AM',
-    totalTrips: 47,
-    rating: 4.9,
-    stats: {
-      co2Saved: 23.5,
-      totalSpent: 124800,
-      badges: ['🌱', '⭐', '🚗', '🏆']
-    },
-    socialStats: {
-      rank: 156,
-      percentile: 20,
-      comparison: 'top 20% de usuarios activos'
+  
+useEffect(() => {
+  async function loadUser() {
+    try {
+      const res = await fetch(`${API_URL}/api/users/123`);
+      const json = await res.json();
+
+      console.log("👉 JSON recibido:", json);
+
+      // Aquí sabremos si json.data existe o no
+      setUserProfile(json.data?.user ?? null);
+
+    } catch (err) {
+      console.error("Error obteniendo user:", err);
     }
-  };
+  }
+
+  loadUser();
+}, []);
+
+
 
   const achievements = [
     {
@@ -107,6 +114,14 @@ export default function EnhancedProfileScreen() {
       ))}
     </div>
   );
+
+  if (!userProfile) {
+  return (
+    <div className="flex items-center justify-center h-screen text-white/60">
+      Cargando perfil...
+    </div>
+  );
+}
 
   return (
     <div className="relative flex min-h-screen flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
