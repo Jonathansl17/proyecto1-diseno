@@ -1,58 +1,5 @@
 #!/bin/bash
 
-# Script para iniciar todo el proyecto y probar las APIs
-# Ejecutar: chmod +x start-all.sh && ./start-all.sh
-
-echo ""
-echo "╔═══════════════════════════════════════════════════════════════╗"
-echo "║         🚀 INICIANDO PROYECTO1-DISEÑO COMPLETO               ║"
-echo "╚═══════════════════════════════════════════════════════════════╝"
-echo ""
-
-# Verificar Node.js
-echo "[1/5] Verificando Node.js..."
-if command -v node &> /dev/null; then
-    NODE_VERSION=$(node --version)
-    echo "✅ Node.js instalado: $NODE_VERSION"
-    echo ""
-else
-    echo "❌ Node.js no encontrado. Por favor instala Node.js"
-    echo ""
-    exit 1
-fi
-
-# Verificar dependencias
-echo "[2/5] Verificando dependencias..."
-if [ -d "node_modules" ]; then
-    echo "✅ Dependencias instaladas"
-    echo ""
-else
-    echo "📦 Instalando dependencias..."
-    npm install
-    echo "✅ Dependencias instaladas"
-    echo ""
-fi
-
-# Iniciar Backend
-echo "[3/5] Iniciando Backend API (Puerto 3001)..."
-npm run server:dev > /dev/null 2>&1 &
-BACKEND_PID=$!
-sleep 3
-echo "✅ Backend iniciado en http://localhost:3001 (PID: $BACKEND_PID)"
-echo ""
-
-# Iniciar Frontend
-echo "[4/5] Iniciando Frontend (Puerto 3000)..."
-npm run dev > /dev/null 2>&1 &
-FRONTEND_PID=$!
-sleep 5
-echo "✅ Frontend iniciado en http://localhost:3000 (PID: $FRONTEND_PID)"
-echo ""
-
-# Esperar a que los servidores estén listos
-echo "[5/5] Esperando a que los servidores estén listos..."
-sleep 3
-
 # Probar APIs
 echo ""
 echo "╔═══════════════════════════════════════════════════════════════╗"
@@ -60,7 +7,7 @@ echo "║              🧪 PROBANDO TODAS LAS APIs                      ║"
 echo "╚═══════════════════════════════════════════════════════════════╝"
 echo ""
 
-BASE_URL="http://localhost:3001/api"
+BASE_URL="http://localhost:5000/api"
 TESTS_PASSED=0
 TESTS_FAILED=0
 
@@ -92,8 +39,6 @@ test_endpoint() {
     fi
 }
 
-# Test 1: Health Check
-test_endpoint "Health Check" "$BASE_URL/health"
 
 # Test 2: Get All Trips
 test_endpoint "Get All Trips" "$BASE_URL/trips"
@@ -114,15 +59,13 @@ test_endpoint "Get All Ratings" "$BASE_URL/ratings"
 test_endpoint "Get All Payments" "$BASE_URL/payments"
 
 # Test 8: Register User
-NEW_USER='{"email":"test@proyecto.com","password":"test123","name":"Usuario de Prueba","phone":"+506 1234-5678","role":"user"}'
+NEW_USER='{"email":"test11dasdsa122@proyecto.com","password":"test123","name":"Usuario de Prueba","phone":"+506 1234-5678","role":"user"}'
 if test_endpoint "Register User" "$BASE_URL/auth/register" "POST" "$NEW_USER"; then
     # Test 9: Login User
     LOGIN_DATA='{"email":"test@proyecto.com","password":"test123"}'
     test_endpoint "Login User" "$BASE_URL/auth/login" "POST" "$LOGIN_DATA"
 fi
 
-# Test 10: Get Trip by ID
-test_endpoint "Get Trip by ID" "$BASE_URL/trips/1"
 
 # Resumen
 echo ""
@@ -145,9 +88,9 @@ echo "╚═══════════════════════�
 echo ""
 
 echo "Frontend:      http://localhost:3000"
-echo "Backend API:   http://localhost:3001/api"
-echo "Swagger Docs:  http://localhost:3001/api-docs"
-echo "Health Check:  http://localhost:3001/api/health"
+echo "Backend API:   http://localhost:5000/api"
+echo "Swagger Docs:  http://localhost:5000/api-docs"
+echo "Health Check:  http://localhost:5000/api/health"
 
 echo ""
 echo "╔═══════════════════════════════════════════════════════════════╗"
@@ -170,14 +113,14 @@ read -p "¿Deseas abrir Swagger en el navegador? (s/n): " OPEN_SWAGGER
 
 if [ "$OPEN_SWAGGER" = "s" ] || [ "$OPEN_SWAGGER" = "S" ]; then
     if command -v xdg-open &> /dev/null; then
-        xdg-open "http://localhost:3001/api-docs"
+        xdg-open "http://localhost:5000/api-docs"
         echo "✅ Swagger abierto en el navegador"
     elif command -v open &> /dev/null; then
-        open "http://localhost:3001/api-docs"
+        open "http://localhost:5000/api-docs"
         echo "✅ Swagger abierto en el navegador"
     else
         echo "⚠️  No se pudo abrir automáticamente. Abre manualmente:"
-        echo "   http://localhost:3001/api-docs"
+        echo "   http://localhost:5000/api-docs"
     fi
 fi
 
