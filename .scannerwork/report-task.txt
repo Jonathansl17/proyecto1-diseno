@@ -1,0 +1,6 @@
+projectKey=RepoQA
+serverUrl=http://localhost:9000
+serverVersion=26.3.0.120487
+dashboardUrl=http://localhost:9000/dashboard?id=RepoQA
+ceTaskId=f766ecee-ef1f-4091-b5b0-202ae0262772
+ceTaskUrl=http://localhost:9000/api/ce/task?id=f766ecee-ef1f-4091-b5b0-202ae0262772
